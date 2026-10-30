@@ -746,7 +746,25 @@ export class ArenaEngine {
       ctx.restore();
     }
     // A handful of active rule effects show immediately in the scenery.
-    if(effects.has('blackout')){const dark=ctx.createRadialGradient(p.x,p.y,55,p.x,p.y,290);dark.addColorStop(0,'rgba(3,3,12,0)');dark.addColorStop(.52,'rgba(3,3,12,.24)');dark.addColorStop(1,'rgba(3,3,12,.96)');ctx.fillStyle=dark;ctx.fillRect(0,0,w,h);}
+    if (effects.has('blackout')) {
+      // Eclipse hides the arena, never the threat. Spectators must still read
+      // the boss's silhouette, telegraphs and vulnerable heart on a stream.
+      const dark = ctx.createRadialGradient(p.x,p.y,65,p.x,p.y,420);
+      dark.addColorStop(0,'rgba(3,3,12,0)');
+      dark.addColorStop(.52,'rgba(3,3,12,.2)');
+      dark.addColorStop(1,'rgba(3,3,12,.76)');
+      ctx.fillStyle=dark;ctx.fillRect(0,0,w,h);
+      if (this.mode === 'architect' && this.boss) {
+        const boss=this.boss;
+        const beacon=ctx.createRadialGradient(boss.x,boss.y,12,boss.x,boss.y,175);
+        beacon.addColorStop(0,'rgba(255,156,220,.24)');
+        beacon.addColorStop(1,'rgba(255,156,220,0)');
+        ctx.fillStyle=beacon;ctx.fillRect(boss.x-180,boss.y-180,360,360);
+        this.drawArchitectBoss(ctx,time);
+        // Keep the attacks readable too, even during the darkest mutation.
+        for(const attack of this.bossAttacks||[])this.drawBossAttack(ctx,attack,time);
+      }
+    }
     if(this.persistentRules.has('corruption')&&!effects.has('blackout')){ctx.fillStyle='rgba(3,3,12,.28)';ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(255,92,153,.12)';ctx.lineWidth=1;for(let x=-h;x<w;x+=44){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+h*.35,h);ctx.stroke();}}
     if(effects.has('reverse')){ctx.fillStyle='rgba(154,96,255,.06)';ctx.fillRect(0,0,w,h);ctx.fillStyle='#dcc3ff';ctx.font='600 21px DM Mono,monospace';ctx.fillText('↑ GRAVITY INVERTED',42,132);}
     if(effects.has('hyper')){for(let i=0;i<22;i++){const x=(i*137+time*310)%w;ctx.strokeStyle='rgba(255,93,189,.18)';ctx.beginPath();ctx.moveTo(x,100);ctx.lineTo(x-85,548);ctx.stroke();}}
