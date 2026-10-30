@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#090810" />
+  <meta name="description" content="PATCH//LIVE — play The Architect, an offline-first crowd-authored boss encounter." />
+  <title>PATCH//LIVE — The Architect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter+Tight:wght@500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/play.css" />
+</head>
+<body class="play-page">
+  <main class="play-shell" id="play-shell">
+    <header class="play-header">
+      <a class="play-brand" href="/" aria-label="Return to PATCH LIVE landing page"><span>✳</span> PATCH<span class="slash">//</span>LIVE <small>THE ARCHITECT</small></a>
+      <div class="play-status-line"><span class="connection-dot offline" id="connection-dot"></span><span id="connection-label">DEMO MODE</span><b id="mode-badge">OFFLINE / SIMULATED</b></div>
+      <div class="play-header-actions"><button class="icon-button" id="audio-btn" type="button" aria-label="Mute audio">♫</button><button class="icon-button" id="pause-btn" type="button" aria-label="Pause run">Ⅱ</button><button class="icon-button" id="expand-btn" type="button" aria-label="Enter fullscreen">⛶</button><a class="leave-link" id="leave-arena" href="/">LEAVE <span>↗</span></a></div>
+    </header>
+
+    <section class="game-layout" id="arena-panel" tabindex="-1" aria-label="The Architect arena">
+      <div class="arena-column">
+        <div class="arena-frame">
+          <div class="arena-topline"><span><i></i> REALITY ENGINE / THE ARCHITECT</span><span id="arena-run-mode">READY / OFFLINE SHOWCASE</span><span>90 SEC RUN</span></div>
+          <div class="arena-wrap" id="canvas-wrap"><canvas id="arena" width="1152" height="648" aria-label="Playable arena for The Architect"></canvas><div class="arena-vignette"></div><div class="telemetry"><span id="engine-state">STABLE</span><span id="survival-time">01:30</span></div><div class="boss-hud"><span class="boss-name">THE ARCHITECT</span><span class="boss-phase" id="boss-health-label">SLEEPING · 100%</span><div class="boss-health"><i id="boss-health-fill"></i></div></div><div class="objective-hud"><small>OBJECTIVE</small><strong id="objective">Wake the Ignition Anchor.</strong></div><div class="patch-banner" id="patch-banner"><span id="patch-symbol">✳</span><div><small>ACTIVE REALITY PATCH</small><strong id="patch-name">—</strong></div><b id="patch-seconds">0s</b></div><div class="impact-flare" id="patch-impact"><span id="patch-impact-icon">✳</span><div><small id="patch-impact-source">OFFLINE / SIMULATED</small><strong id="patch-impact-label">PATCH LANDED</strong></div></div></div>
+          <div class="arena-bottomline"><span><b id="act-number">I</b> <strong id="act-name">IGNITION</strong></span><span id="act-copy">ANCHOR 01 / 03</span><span><b id="dash-state">DASH READY</b> · ARROWS / WASD + SPACE + SHIFT</span></div>
+          <div class="anchor-strip" id="anchor-strip" aria-label="Anchor progression"></div>
+        </div>
+        <div class="touch-controls" aria-label="Touch controls"><button type="button" data-key="a" aria-label="Move left">←</button><button type="button" data-key=" " aria-label="Jump">↑</button><button type="button" data-key="d" aria-label="Move right">→</button><button type="button" data-key="shift" aria-label="Dash">✦</button></div>
+      </div>
+
+      <aside class="control-rail" id="control-rail">
+        <div class="rail-mobile-head"><span>CONTROL ROOM</span><button type="button" id="rail-toggle" aria-expanded="true">COLLAPSE −</button></div>
+        <section class="rail-card run-card"><div class="card-kicker"><span>RUN STATUS</span><span id="run-clock-label">90 SEC</span></div><div class="act-readout"><span id="act-number-rail">I</span><div><strong id="act-name-rail">IGNITION</strong><small id="act-subtitle">Wake the laws.</small></div></div><div class="act-steps"><span class="active" data-act="1">01</span><i></i><span data-act="2">02</span><i></i><span data-act="3">03</span></div><div class="run-dna"><small>RUN DNA / VISIBLE TRACES</small><p><span>GRAVITY</span><b id="dna-gravity">DEFAULT</b></p><p><span>TERRAIN</span><b id="dna-terrain">INTACT</b></p><p><span>BOSS</span><b id="dna-boss">BASELINE</b></p></div></section>
+        <section class="rail-card vote-card"><div class="card-kicker"><span>RULE FORGE</span><span class="offline-pill" id="feed-mode">OFFLINE / SIMULATED</span></div><h1>CHAT WRITES<br /><em>THE NEXT LAW.</em></h1><p class="rail-copy">Compose a safe patch. The winning rule changes the arena and stays in the run's memory.</p><div class="vote-bar"><span id="vote-state">VOTING OPEN</span><b id="countdown">25<span>s</span></b></div><div class="vote-progress"><i id="vote-progress-fill"></i></div><div class="vote-meta"><span><b id="vote-count">0</b> VOTES</span><span><b id="unique-voters">0</b> VIEWERS</span></div><div class="patch-options" id="patch-options"></div><div class="vote-actions"><button class="ghost-button" id="veto-btn" type="button">VETO ACTIVE PATCH</button><button class="ghost-button" id="copy-command" type="button">COPY COMMAND</button></div><div class="last-patch"><span>LAST TRACE</span><b id="last-patch">NONE YET</b></div></section>
+        <section class="rail-card showcase-card"><div class="card-kicker"><span>GUIDED SHOWCASE</span><span>JUDGING MODE</span></div><strong>See the whole encounter in one pass.</strong><p>Six named local viewers, three real rule changes, and a guided streamer run. Every message is labelled as simulated.</p><button class="primary-button" id="showcase-btn" type="button">RUN OFFLINE SHOWCASE ↗</button><small id="showcase-feedback">No Twitch account required. No fake live activity.</small></section>
+        <section class="rail-card feed-card"><div class="card-kicker"><span>ACTIVITY / PROVENANCE</span><span id="arena-live-status">DEMO MODE • LOCAL</span></div><div class="activity-feed" id="activity-feed" aria-live="polite"></div><button class="chat-toggle" id="chat-toggle" type="button">OPEN CHAT LAB <span>＋</span></button></section>
+        <section class="rail-card connect-card"><div class="card-kicker"><span>TWITCH BRIDGE</span><span>OPTIONAL</span></div><strong>Connect only when authenticated.</strong><p id="arena-disclosure">OFFLINE / SIMULATED CHAT. The local showcase never represents real Twitch activity.</p><button class="ghost-button" id="connect-button" type="button">CONNECT TWITCH</button></section>
+      </aside>
+    </section>
+
+    <div class="act-transition" id="act-transition"><small>REALITY SHIFT</small><strong id="act-transition-name">FRACTURE</strong><span id="act-transition-detail">The floor is lying.</span></div>
+    <div class="pause-overlay" id="pause-overlay"><div><small>INPUT CLEARED</small><strong>RUN PAUSED.</strong><span id="pause-reason">STREAMER PAUSE</span><button class="primary-button" id="resume-btn" type="button">RESUME RUN ↗</button></div></div>
+
+    <section class="start-screen" id="start-screen"><div class="start-panel"><span class="start-kicker">OFFLINE / SIMULATED · NO TWITCH REQUIRED</span><h1>WAKE<br /><em>THE ARCHITECT.</em></h1><p>Stabilize three anchors. Read the telegraphs. Dash through the boss and carry every audience-authored scar into the collapse.</p><div class="start-actions"><button class="primary-button" id="start-btn" type="button">START FREE RUN ↗</button><button class="secondary-button" id="start-showcase-btn" type="button">WATCH GUIDED SHOWCASE</button></div><small class="start-note">Keyboard: A/D or arrows to move · Space to jump · Shift to dash. The live bridge is unavailable until Twitch authentication succeeds.</small></div></section>
+
+    <section class="outcome-screen hidden" id="outcome-screen"><div class="outcome-panel"><span class="start-kicker" id="outcome-kicker">RUN COMPLETE</span><h1 id="outcome-title">REALITY<br /><em>CONQUERED.</em></h1><p id="outcome-copy"></p><div class="outcome-stats"><span><b id="outcome-time">00:00</b><small>TIME</small></span><span><b id="outcome-health">100%</b><small>HEALTH</small></span><span><b id="outcome-grade">—</b><small>GRADE</small></span></div><div class="lineage"><span>PATCH LINEAGE / VIEWER CREDIT</span><div id="lineage-list"></div></div><div class="outcome-actions"><button class="primary-button" id="retry-btn" type="button">RUN IT BACK ↗</button><button class="secondary-button" id="share-run-btn" type="button">COPY RUN CARD</button><a class="secondary-button" id="exit-run-btn" href="/">EXIT TO LANDING</a></div></div></section>
+
+    <aside class="chat-drawer" id="chat-drawer" aria-hidden="true"><div class="drawer-head"><div><span>OFFLINE CHAT LAB</span><strong>TEST THE REAL VOTE PATH</strong></div><button type="button" id="chat-close">×</button></div><p>These are local fixtures, never Twitch activity. The same parser and allowlist handle the input.</p><form id="chat-lab-form"><label>VIEWER HANDLE<input id="lab-viewer" value="orbiting_7" maxlength="25" autocomplete="off" /></label><label>COMMAND<input id="lab-command" value="!patch moon+meteor" maxlength="100" autocomplete="off" /></label><button class="primary-button" id="lab-send" type="submit">SUBMIT LOCAL VOTE ↗</button></form><div class="lab-actions"><button class="ghost-button" id="lab-resolve" type="button">RESOLVE ROUND</button><button class="ghost-button" id="lab-scenario" type="button">RUN GUIDED SHOWCASE</button></div><div class="lab-feedback" id="lab-feedback">Awaiting a local test event.</div></aside>
+
+    <div class="modal hidden" id="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-title"><div class="modal-card"><button class="modal-close" id="close-modal" type="button" aria-label="Close">×</button><span class="start-kicker">TWITCH OAUTH / OPTIONAL BRIDGE</span><h2 id="connect-title">CONNECT<br /><em>AUTHENTICALLY.</em></h2><p>PATCH//LIVE will only call a connection live after Twitch OAuth and chat subscription succeed. Until then, every activity panel remains explicitly offline.</p><label>CLIENT ID<input id="twitch-client-id" autocomplete="off" /></label><div class="redirect-line"><span>REDIRECT URI</span><code id="redirect-url"></code><button class="ghost-button" id="copy-redirect" type="button">COPY</button></div><div class="modal-error" id="connect-error"></div><button class="primary-button" id="authorize-btn" type="button">AUTHORIZE WITH TWITCH ↗</button></div></div>
+  </main>
+  <script type="module" src="/src/play.js"></script>
+</body>
+</html>

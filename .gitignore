@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dist-standalone/
+.git-publish/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
