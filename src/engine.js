@@ -1,4 +1,6 @@
 import { compilePatch } from './patches.js';
+import { evolveArchitect, bossRuleDynamics, pickBossAttack } from './boss-evolution.js';
+import { drawEvolvedArchitect } from './boss-art.js';
 import { ACTS, GOAL_CORES, actForScore, progressPercent, runGrade } from './progression.js';
 
 export class ArenaEngine {
@@ -55,7 +57,8 @@ export class ArenaEngine {
     this.anchorIndex = 0;
     this.anchorChargeTime = 7;
     this.boss = { x:890, y:216, r:74, health:100, maxHealth:100, exposed:false,
-      phase:'sleeping', hitFlash:0, attackClock:4.8, attackCount:0, trait:'BASELINE' };
+      phase:'sleeping', hitFlash:0, attackClock:4.8, attackCount:0, trait:'BASELINE',
+      form:'PRIME', evolution:0, aspects:[], signature:'UNWRITTEN', morphPulse:0, weakWindow:0 };
     this.bossAttacks = [];
     this.bossPulse = 0;
     this.terrainScars = [];
@@ -224,8 +227,15 @@ export class ArenaEngine {
       this.terrainScars.push({ type:'corruption', x:540, y:520, life:1 });
       traces.push('void veil');
     }
-    if (effects.size > 1) visible = `${recipe.short} → ${traces.join(' · ')}`;
-    return { trace:traces.join(' · ') || 'rule trace', visible };
+    const evolution = evolveArchitect(this.boss, recipe);
+    if (evolution) {
+      this.runDNA.boss = `EVOLUTION 0${evolution.stage} / ${evolution.form}`;
+      visible = `${evolution.announcement} // ${recipe.short}`;
+      this.shake = .7;
+      this.bossPulse = 1.25;
+      this.burst(this.boss.x, this.boss.y, evolution.color, 44);
+    }
+    return { trace:traces.join(' · ') || 'rule trace', visible, evolution };
   }
   finish(won) {
     if (this.finished) return;
@@ -410,6 +420,7 @@ export class ArenaEngine {
     } else {
       p.x += p.vx * dt;
       p.vy = 0;
+      this.tryDashBossHit();
     }
     p.x = Math.max(38, Math.min(1114, p.x));
     const oldY = p.y - p.vy * dt;
@@ -484,17 +495,31 @@ export class ArenaEngine {
     p.vx = direction < 0 ? -840 : 840;
     p.vy = 0;
     p.dashes = (p.dashes || 0) + 1;
+    p.dashHit = false;
     this.contactKind = 'dash';
     this.contactPulse = .35;
     this.burst(p.x, p.y, '#e1c3ff', 18);
-    if (this.finalPhase && Math.hypot(p.x - this.boss.x, p.y - this.boss.y) < 142) {
-      this.boss.health = Math.max(0, this.boss.health - 22);
-      this.boss.hitFlash = .32;
-      this.bossPulse = .35;
-      this.shake = .3;
-      this.burst(this.boss.x, this.boss.y, '#ff9bb5', 24);
-      if (this.boss.health <= 0) this.finish(true);
-    }
+    this.tryDashBossHit();
+  }
+
+  /** Dash contact is checked during travel, not only on the initial key press. */
+  tryDashBossHit() {
+    const p = this.player;
+    if (!this.finalPhase || !this.playing || p.dashHit || p.dashTimer <= 0) return false;
+    const boss = this.boss;
+    const reach = bossRuleDynamics(boss.aspects).magnet ? 174 : 142;
+    if (Math.hypot(p.x - boss.x, p.y - boss.y) >= reach) return false;
+    p.dashHit = true;
+    const dynamics = bossRuleDynamics(boss.aspects);
+    const damage = 22 + dynamics.bonusDamage + (boss.weakWindow > 0 ? 7 : 0);
+    boss.health = Math.max(0, boss.health - damage);
+    boss.hitFlash = .38;
+    this.bossPulse = .45;
+    this.shake = .42;
+    this.burst(boss.x, boss.y, boss.weakWindow > 0 ? '#d7ff8a' : '#ff9bb5', 30);
+    this.onPatch?.({phase:'counter', damage, weakPoint:boss.weakWindow > 0, form:boss.form, guided:this.guided});
+    if (boss.health <= 0) this.finish(true);
+    return true;
   }
 
   updateArchitectHazards(dt, effects) {
@@ -525,11 +550,10 @@ export class ArenaEngine {
   }
 
   spawnBossAttack() {
-    const trait = this.boss.trait;
     const index = this.boss.attackCount++;
-    const kind = trait === 'METEOR PATTERN' ? 'meteor' : trait === 'VOID VEIL' ? 'veil' : index % 3 === 0 ? 'beam' : index % 3 === 1 ? 'slam' : 'orbit';
+    const kind = pickBossAttack(this.boss, index);
     const attack = { kind, x: kind === 'beam' ? this.player.x : this.boss.x, y:kind === 'slam' ? this.player.y : this.boss.y,
-      age:0, telegraph:trait === 'VOID VEIL' ? .62 : .86, active:.34, resolved:false, radius:kind === 'slam' ? 145 : kind === 'veil' ? 190 : 74 };
+      age:0, telegraph:kind === 'veil' ? .76 : kind === 'meteor' ? 1.05 : kind === 'orbit' ? 1.0 : .86, active:.34, resolved:false, radius:kind === 'slam' ? 145 : kind === 'veil' ? 190 : kind === 'meteor' ? 135 : 74 };
     this.bossAttacks.push(attack);
     this.onPatch?.({ phase:'attack', attack, guided:this.guided });
   }
@@ -537,13 +561,19 @@ export class ArenaEngine {
   updateBoss(dt, effects) {
     const boss = this.boss;
     boss.hitFlash = Math.max(0, boss.hitFlash - dt);
+    boss.weakWindow = Math.max(0, (boss.weakWindow || 0) - dt);
+    boss.morphPulse = Math.max(0, (boss.morphPulse || 0) - dt);
+    const dynamics = bossRuleDynamics(boss.aspects);
+    // Only the currently active patch changes physical gravity for both sides.
+    // Its permanent DNA continues to drive the boss's attacks, form and counter windows.
+    const motion = bossRuleDynamics(effects);
     if (!boss.exposed) {
-      boss.y = 216 + Math.sin(this.elapsed * .8) * 8;
+      boss.y = (motion.invert ? 151 : motion.float ? 277 : 216) + Math.sin(this.elapsed * (motion.haste ? 1.35 : .8)) * (motion.float ? 20 : 8);
       boss.attackClock = Math.max(0, boss.attackClock - dt * .25);
       return;
     }
-    boss.x = 890 + Math.sin(this.elapsed * .62) * (effects.has('hyper') ? 82 : 50);
-    boss.y = 225 + Math.sin(this.elapsed * 1.1) * 18;
+    boss.x = 890 + Math.sin(this.elapsed * (dynamics.haste ? 1.05 : .62)) * (dynamics.haste ? 92 : dynamics.magnet ? 33 : 50);
+    boss.y = (motion.invert ? 155 : motion.float ? 296 : 225) + Math.sin(this.elapsed * (dynamics.haste ? 1.5 : 1.1)) * (motion.float ? 29 : 18);
     boss.attackClock -= dt;
     const cadence = boss.trait === 'ACCELERATED' || this.persistentRules.has('tempo') ? 2.25 : this.act.number === 3 ? 3.1 : 3.8;
     if (boss.attackClock <= 0) { this.spawnBossAttack(); boss.attackClock = cadence; }
@@ -551,8 +581,13 @@ export class ArenaEngine {
       attack.age += dt;
       if (attack.age >= attack.telegraph && !attack.resolved) {
         attack.resolved = true;
+        // The boss is vulnerable after committing to its authored attack.
+        // Haste is more dangerous but leaves a longer counterattack window.
+        boss.weakWindow = Math.max(boss.weakWindow, dynamics.openingSeconds);
         const hit = attack.kind === 'slam'
           ? Math.hypot(this.player.x - attack.x, this.player.y - attack.y) < attack.radius
+          : attack.kind === 'meteor'
+            ? Math.hypot(this.player.x - attack.x, this.player.y - attack.y) < attack.radius
           : attack.kind === 'beam'
             ? Math.abs(this.player.x - attack.x) < 76
             : attack.kind === 'veil'
@@ -711,7 +746,25 @@ export class ArenaEngine {
       ctx.restore();
     }
     // A handful of active rule effects show immediately in the scenery.
-    if(effects.has('blackout')){const dark=ctx.createRadialGradient(p.x,p.y,55,p.x,p.y,290);dark.addColorStop(0,'rgba(3,3,12,0)');dark.addColorStop(.52,'rgba(3,3,12,.24)');dark.addColorStop(1,'rgba(3,3,12,.96)');ctx.fillStyle=dark;ctx.fillRect(0,0,w,h);}
+    if (effects.has('blackout')) {
+      // Eclipse hides the arena, never the threat. Spectators must still read
+      // the boss's silhouette, telegraphs and vulnerable heart on a stream.
+      const dark = ctx.createRadialGradient(p.x,p.y,65,p.x,p.y,420);
+      dark.addColorStop(0,'rgba(3,3,12,0)');
+      dark.addColorStop(.52,'rgba(3,3,12,.2)');
+      dark.addColorStop(1,'rgba(3,3,12,.76)');
+      ctx.fillStyle=dark;ctx.fillRect(0,0,w,h);
+      if (this.mode === 'architect' && this.boss) {
+        const boss=this.boss;
+        const beacon=ctx.createRadialGradient(boss.x,boss.y,12,boss.x,boss.y,175);
+        beacon.addColorStop(0,'rgba(255,156,220,.24)');
+        beacon.addColorStop(1,'rgba(255,156,220,0)');
+        ctx.fillStyle=beacon;ctx.fillRect(boss.x-180,boss.y-180,360,360);
+        this.drawArchitectBoss(ctx,time);
+        // Keep the attacks readable too, even during the darkest mutation.
+        for(const attack of this.bossAttacks||[])this.drawBossAttack(ctx,attack,time);
+      }
+    }
     if(this.persistentRules.has('corruption')&&!effects.has('blackout')){ctx.fillStyle='rgba(3,3,12,.28)';ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(255,92,153,.12)';ctx.lineWidth=1;for(let x=-h;x<w;x+=44){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+h*.35,h);ctx.stroke();}}
     if(effects.has('reverse')){ctx.fillStyle='rgba(154,96,255,.06)';ctx.fillRect(0,0,w,h);ctx.fillStyle='#dcc3ff';ctx.font='600 21px DM Mono,monospace';ctx.fillText('↑ GRAVITY INVERTED',42,132);}
     if(effects.has('hyper')){for(let i=0;i<22;i++){const x=(i*137+time*310)%w;ctx.strokeStyle='rgba(255,93,189,.18)';ctx.beginPath();ctx.moveTo(x,100);ctx.lineTo(x-85,548);ctx.stroke();}}
@@ -779,40 +832,14 @@ export class ArenaEngine {
   }
 
   drawArchitectBoss(ctx, time) {
-    const boss = this.boss;
-    if (!boss) return;
-    ctx.save();
-    ctx.translate(boss.x, boss.y);
-    const pulse = 1 + Math.sin(time * 2.4) * .025;
-    ctx.scale(pulse, pulse);
-    const aura = ctx.createRadialGradient(0, 0, 35, 0, 0, 180);
-    aura.addColorStop(0, boss.exposed ? 'rgba(255,122,176,.28)' : 'rgba(180,130,255,.2)');
-    aura.addColorStop(1, 'rgba(121,77,203,0)');
-    ctx.fillStyle = aura; ctx.beginPath(); ctx.arc(0, 0, 180, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = boss.exposed ? 'rgba(255,135,172,.7)' : 'rgba(207,177,255,.38)';
-    ctx.lineWidth = 2;
-    for (const r of [86, 112, 139]) { ctx.beginPath(); ctx.ellipse(0, 0, r, r * .28, time * .18, 0, Math.PI * 2); ctx.stroke(); }
-    // Original monolith silhouette: crown, mask and four articulated arms.
-    ctx.fillStyle = '#171127'; ctx.strokeStyle = '#c7a4ff'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-43, -52); ctx.lineTo(-22, -90); ctx.lineTo(0, -62); ctx.lineTo(25, -96); ctx.lineTo(49, -51); ctx.lineTo(37, 42); ctx.quadraticCurveTo(0, 74, -38, 42); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = boss.hitFlash > 0 ? '#fff1bd' : '#ff7da8';
-    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = boss.hitFlash > 0 ? 28 : 14;
-    ctx.beginPath(); ctx.moveTo(-22, -16); ctx.lineTo(0, -28); ctx.lineTo(22, -16); ctx.lineTo(0, -5); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#d5ff8c'; ctx.lineWidth = 4;
-    for (const side of [-1, 1]) {
-      ctx.beginPath(); ctx.moveTo(side * 36, -20); ctx.lineTo(side * 78, 14 + Math.sin(time * 2 + side) * 9); ctx.lineTo(side * 106, 48 + Math.sin(time * 1.5 + side) * 13); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(side * 34, 18); ctx.lineTo(side * 76, 58 + Math.sin(time * 1.8 + side) * 10); ctx.lineTo(side * 96, 93); ctx.stroke();
-    }
-    ctx.fillStyle = '#24163a'; ctx.fillRect(-29, 48, 58, 10);
-    ctx.fillStyle = '#ffc1d4'; ctx.font = '600 11px DM Mono,monospace'; ctx.textAlign = 'center'; ctx.fillText('THE ARCHITECT', 0, 126);
-    ctx.restore();
+    drawEvolvedArchitect(ctx, this.boss, time);
   }
-
   drawBossAttack(ctx, attack, time) {
     const ratio = Math.min(1, attack.age / attack.telegraph);
     const active = attack.age >= attack.telegraph;
     ctx.save();
     ctx.globalAlpha = active ? .8 : .3 + ratio * .5;
+    ctx.shadowColor = '#ff6ca7'; ctx.shadowBlur = active ? 16 : 4;
     ctx.strokeStyle = active ? '#ff5f9b' : '#ffb2c9';
     ctx.fillStyle = active ? 'rgba(255,74,135,.18)' : 'rgba(255,128,168,.08)';
     ctx.lineWidth = active ? 5 : 2;

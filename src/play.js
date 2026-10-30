@@ -1,5 +1,6 @@
 import { PATCHES, VoteRound, canonicalVoteUser, compilePatch } from './patches.js';
 import { ArenaEngine } from './engine.js';
+import { BOSS_FORMS } from './boss-evolution.js';
 import { ACTS } from './progression.js';
 import { demoChatEvent, DEMO_SCENARIO } from './demo.js';
 import { TwitchChat, beginOAuth, consumeOAuthCallback, disconnectToken, getClientId, getToken, redirectUri } from './twitch.js';
@@ -111,6 +112,12 @@ function renderAnchors(snapshot) {
 
 function updateHud(snapshot) {
   const boss = snapshot.boss;
+  const form = BOSS_FORMS[boss?.form] || BOSS_FORMS.PRIME;
+  el('boss-name').textContent = form.name;
+  el('boss-name').style.color = form.color;
+  el('boss-evolution').textContent = boss?.evolution ? `EVOLUTION 0${boss.evolution} · ${form.subtitle}` : 'FORM 00 · UNWRITTEN';
+  el('boss-evolution').style.color = form.color;
+  el('arena-panel').dataset.bossForm = boss?.form || 'PRIME';
   const seconds = Math.max(0, Math.ceil(snapshot.timeLeft));
   el('survival-time').textContent = formatClock(seconds);
   el('act-number').textContent = ['I', 'II', 'III'][snapshot.act.number - 1];
@@ -201,16 +208,16 @@ function runOfflineShowcase() {
   el('showcase-feedback').textContent = 'OFFLINE / SIMULATED: six named viewers are using the real compiler.';
   const first = DEMO_SCENARIO;
   const second = [
-    { name:'frame_smith', text:'!patch reverse' }, { name:'luma_loop', text:'!patch hyper+magnet' },
-    { name:'soft_reset', text:'!patch blackout' }, { name:'aether_cat', text:'!patch hyper+magnet' }
+    { name:'frame_smith', text:'!patch reverse+magnet' }, { name:'luma_loop', text:'!patch reverse+magnet' },
+    { name:'soft_reset', text:'!patch hyper' }, { name:'aether_cat', text:'!patch reverse+magnet' }
   ];
   const third = [
-    { name:'boss_reader', text:'!patch meteor' }, { name:'night_shift', text:'!patch meteor+moon' },
-    { name:'tiny_orbit', text:'!patch meteor+moon' }
+    { name:'boss_reader', text:'!patch blackout+magnet' }, { name:'night_shift', text:'!patch blackout+magnet' },
+    { name:'tiny_orbit', text:'!patch blackout+magnet' }
   ];
-  runShowcaseRound(first, 180, () => { el('showcase-feedback').textContent = 'PATCH ONE LANDED · terrain and attack DNA now persist.'; });
-  runShowcaseRound(second, 26000, () => { el('showcase-feedback').textContent = 'PATCH TWO LANDED · the final route carries a new scar.'; });
-  runShowcaseRound(third, 54000, () => { el('showcase-feedback').textContent = 'PATCH THREE LANDED · watch the collapse phase resolve.'; });
+  runShowcaseRound(first, 180, () => { el('showcase-feedback').textContent = 'EVOLUTION 01 · CATACLYSM / audience-authored meteor body'; });
+  runShowcaseRound(second, 26000, () => { el('showcase-feedback').textContent = 'EVOLUTION 02 · SINGULARITY / gravity and magnetic limbs'; });
+  runShowcaseRound(third, 54000, () => { el('showcase-feedback').textContent = 'EVOLUTION 03 · ECLIPSE / chat builds the final form'; });
 }
 
 function status({ state, detail }) {
@@ -235,7 +242,18 @@ const engine = new ArenaEngine(el('arena'), {
   onUpdate: updateHud,
   onAct: act => { el('act-transition-name').textContent = act.name; el('act-transition-detail').textContent = act.subtitle; addFeed('system', `ACT ${act.number} // ${act.name}. Threats escalating.`); tone(act.number === 3 ? 620 : 480, .18, 'triangle'); },
   onPatch: event => {
-    if (event.phase === 'in') showPatchImpact(event.recipe, event.guided ? 'GUIDED / OFFLINE SIMULATED' : liveMode ? 'TWITCH CHAT' : offlineLabel, event.impact);
+    if (event.phase === 'in') {
+      showPatchImpact(event.recipe, event.guided ? 'GUIDED / OFFLINE SIMULATED' : liveMode ? 'TWITCH CHAT' : offlineLabel, event.impact);
+      if (event.impact?.evolution) {
+        const evo = event.impact.evolution;
+        addFeed('patch', `${evo.announcement} · ${evo.signature} · inherited ${evo.aspects.length} genes`);
+        tone(evo.stage === 3 ? 152 : 224, .32, 'sawtooth');
+      }
+    }
+    if (event.phase === 'counter') {
+      addFeed('patch', `COUNTERATTACK +${event.damage} · ${event.weakPoint ? 'weak point exploited' : 'dash contact'}`);
+      tone(event.weakPoint ? 760 : 560, .13, 'triangle');
+    }
     if (event.phase === 'out') addFeed('system', `${event.recipe?.short || 'Reality patch'} ${event.reason === 'veto' ? 'vetoed by streamer' : 'expired'}; visible trace remains.`);
     if (event.phase === 'attack') { el('objective').textContent = 'TELEGRAPH — read the Architect attack.'; tone(210, .06, 'square'); }
   },
