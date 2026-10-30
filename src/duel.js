@@ -18,7 +18,7 @@ function makeState(){
   return {
     running:false, guided:false, finished:false, elapsed:0, duration:60,
     player:{x:316,y:FLOOR-32, vx:0, health:100, invuln:0, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
-    boss:{x:BOSS_X,y:BOSS_Y,maxHealth:170,health:170,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
+    boss:{x:BOSS_X,y:BOSS_Y,maxHealth:360,health:360,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
     attacks:[], refractions:[], particles:[], ambient:[], nextAttack:1.3,
     activePatch:null, patchEnds:0, combo:0, reflects:0, points:0,
     hudText:'MAKE YOUR FIRST MOVE', hudSmall:'WAIT FOR A TELEGRAPH. REFLECT AT THE LAST SECOND.',
