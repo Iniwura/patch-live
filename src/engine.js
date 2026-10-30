@@ -564,13 +564,16 @@ export class ArenaEngine {
     boss.weakWindow = Math.max(0, (boss.weakWindow || 0) - dt);
     boss.morphPulse = Math.max(0, (boss.morphPulse || 0) - dt);
     const dynamics = bossRuleDynamics(boss.aspects);
+    // Only the currently active patch changes physical gravity for both sides.
+    // Its permanent DNA continues to drive the boss's attacks, form and counter windows.
+    const motion = bossRuleDynamics(effects);
     if (!boss.exposed) {
-      boss.y = (dynamics.invert ? 151 : dynamics.float ? 277 : 216) + Math.sin(this.elapsed * (dynamics.haste ? 1.35 : .8)) * (dynamics.float ? 20 : 8);
+      boss.y = (motion.invert ? 151 : motion.float ? 277 : 216) + Math.sin(this.elapsed * (motion.haste ? 1.35 : .8)) * (motion.float ? 20 : 8);
       boss.attackClock = Math.max(0, boss.attackClock - dt * .25);
       return;
     }
     boss.x = 890 + Math.sin(this.elapsed * (dynamics.haste ? 1.05 : .62)) * (dynamics.haste ? 92 : dynamics.magnet ? 33 : 50);
-    boss.y = (dynamics.invert ? 155 : dynamics.float ? 296 : 225) + Math.sin(this.elapsed * (dynamics.haste ? 1.5 : 1.1)) * (dynamics.float ? 29 : 18);
+    boss.y = (motion.invert ? 155 : motion.float ? 296 : 225) + Math.sin(this.elapsed * (dynamics.haste ? 1.5 : 1.1)) * (motion.float ? 29 : 18);
     boss.attackClock -= dt;
     const cadence = boss.trait === 'ACCELERATED' || this.persistentRules.has('tempo') ? 2.25 : this.act.number === 3 ? 3.1 : 3.8;
     if (boss.attackClock <= 0) { this.spawnBossAttack(); boss.attackClock = cadence; }
