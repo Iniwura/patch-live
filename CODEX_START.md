@@ -16,7 +16,8 @@ Open `http://localhost:4173/` for the cinematic landing page, then enter `http:/
 
 - The v0.7 editorial/celestial identity is preserved; the landing route is in `index.html` + `src/landing.*`, and the playable route is in `play/index.html` + `src/play.*`.
 - `npm test` has been run and currently passes 23/23 authored tests.
-- The previous Vercel preview remains at https://patch-live-iniwura-akurus-projects.vercel.app/; this checkout has not been deployed over it.
+- The production deployment is live at https://patch-live.vercel.app/ with the playable route at https://patch-live.vercel.app/play/.
+- The published source is https://github.com/Iniwura/patch-live at commit `a12dfe66bf3a00f2dd61d2a3e605588ba2a660e8`.
 - Real Twitch OAuth/EventSub is still blocked by developer 2FA. The offline chat lab is explicitly labeled simulation.
 - Run `/status` in this same Codex conversation immediately before submission and copy the genuine session ID. Never invent one.
 

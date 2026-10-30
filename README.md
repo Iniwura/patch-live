@@ -44,7 +44,8 @@ For the judge journey:
 
 ## Release truth
 
-- The existing preview at https://patch-live-iniwura-akurus-projects.vercel.app/ was the prior v0.7 deployment at the time of this worklog. The new source is ready for an intentional promotion after GitHub source publication.
+- Full source: [github.com/Iniwura/patch-live](https://github.com/Iniwura/patch-live), commit `a12dfe66bf3a00f2dd61d2a3e605588ba2a660e8`.
+- Production deployment for that source: [patch-live.vercel.app](https://patch-live.vercel.app/) and [patch-live.vercel.app/play/](https://patch-live.vercel.app/play/). The immutable deployment is [patch-live-lx17pgg2e-iniwura-akurus-projects.vercel.app](https://patch-live-lx17pgg2e-iniwura-akurus-projects.vercel.app/).
 - Local static output includes both `/` and `/play/`; `npm run build` copies the independent route into `dist/play/` and the standalone inliner produces the game route as `dist-standalone/index.html`.
 - Real Twitch OAuth/EventSub remains unverified and blocked by developer 2FA. A real Client ID, broadcaster account, authorization, subscription, and chat test are still required before showing live footage.
 - No token, client secret, or fabricated session identifier belongs in source, logs, screenshots, or the submission.

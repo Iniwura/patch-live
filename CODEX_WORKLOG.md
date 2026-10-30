@@ -52,6 +52,14 @@ Results:
 
 - Twitch developer 2FA still blocks app registration, so OAuth/EventSub cannot be called verified or live. The code is retained for a later user-authenticated test.
 - No browser automation or screenshot capture was available in this workspace; the runtime check is HTTP/module/build/physics validation, not a claim of visual browser QA.
-- The new source is not yet backed by a usable local Git remote or a production deployment. Review `dist/`, publish the exact source state, then deploy through the authorized Vercel workflow.
+- The extracted checkout cannot mount a normal `.git` directory, so publication uses a separate local Git metadata directory and the published GitHub source is the release authority.
+
+## Publication evidence
+
+- GitHub repository: https://github.com/Iniwura/patch-live
+- Published source commit: `a12dfe66bf3a00f2dd61d2a3e605588ba2a660e8`
+- Vercel project: `patch-live` (`prj_FJn4muJ7N1xIp2W040cmeS7EmLOh`)
+- Production deployment: `dpl_22zYTYqcebArnQtWkLxpJitBspPM`, READY, source metadata matched the published GitHub commit.
+- Production routes smoke-fetched HTTP 200 at `/` and `/play/`.
 - This extracted checkout does not contain initialized Git metadata or a remote, so no commit or push is claimed here.
 - Run `/status` in this same Codex conversation before Devpost submission to capture the real session ID. This worklog intentionally leaves that value blank rather than inventing one.
