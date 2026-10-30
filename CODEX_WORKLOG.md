@@ -57,9 +57,9 @@ Results:
 ## Publication evidence
 
 - GitHub repository: https://github.com/Iniwura/patch-live
-- Published source commit: `a12dfe66bf3a00f2dd61d2a3e605588ba2a660e8`
+- Published release commit: `6498385c9f70f97cbf10283498ad20452f195399`
 - Vercel project: `patch-live` (`prj_FJn4muJ7N1xIp2W040cmeS7EmLOh`)
-- Production deployment: `dpl_22zYTYqcebArnQtWkLxpJitBspPM`, READY, source metadata matched the published GitHub commit.
+- Production deployment: `dpl_256z9JfeKnmWs7Arvp3b1kmSg9qx`, READY, source metadata matched the published GitHub release commit.
 - Production routes smoke-fetched HTTP 200 at `/` and `/play/`.
 - This extracted checkout does not contain initialized Git metadata or a remote, so no commit or push is claimed here.
 - Run `/status` in this same Codex conversation before Devpost submission to capture the real session ID. This worklog intentionally leaves that value blank rather than inventing one.
