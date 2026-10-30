@@ -152,7 +152,7 @@ function finish(won){
   $('result-label').textContent=won?'THE AUDIENCE BUILT IT. YOU BEAT IT.':'THE CROWD WINS THIS ROUND';
   $('result-title').innerHTML=won?'THE MONSTER<br/><em>WAS YOURS.</em>':'THEY<br/><em>BROKE YOU.</em>';
   $('result-description').textContent=won?
-    'You reflected '+state.reflects+' community-authored attacks. The crowd made your enemy. Your timing was the weapon.':
+    'You reflected '+state.reflects+' community-authored attacks. Built by '+([...state.authors].slice(0,3).join(', ')||'your community')+'. You turned their weapons against them.':
     'Every attack was designed by your community. Restart and turn their ideas against them.';
   $('result-reflects').textContent=state.reflects;
   $('result-authors').textContent=state.authors.size;
@@ -377,7 +377,7 @@ function drawAttacks(time){
       ctx.strokeStyle='#fff0cb';ctx.lineWidth=2+progress*3;
       ctx.strokeRect(a.x-28,170,56,FLOOR-170);
       ctx.fillStyle='#ffb0bd';ctx.font='700 11px "DM Mono",monospace';
-      ctx.textAlign='center';ctx.fillText('INCOMING',a.x,FLOOR-15);
+      ctx.textAlign='center';ctx.fillText('INCOMING',a.x,FLOOR-15);ctx.font='700 12px "DM Mono",monospace';ctx.fillText(String(a.name||'THE CROWD').toUpperCase().slice(0,22),a.x,FLOOR-38);
       ctx.beginPath();ctx.arc(a.x,FLOOR-70,25+progress*15,0,Math.PI*2);ctx.stroke();
       ctx.restore();continue;
     }
@@ -393,6 +393,7 @@ function drawAttacks(time){
     for(let i=0;i<points*2;i++){const ang=i*Math.PI/points;const r=i%2?rad*.55:rad;const x=Math.cos(ang)*r,y=Math.sin(ang)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
     ctx.closePath();ctx.fill();ctx.stroke();
     ctx.restore();
+    ctx.save();ctx.font='700 12px "DM Mono",monospace';ctx.textAlign='center';ctx.fillStyle='#ffd6e1';ctx.shadowColor='#0b0711';ctx.shadowBlur=7;ctx.fillText(String(a.name||'THE CROWD').toUpperCase().slice(0,22),a.x,a.y-45);ctx.restore();
     ctx.strokeStyle='rgba(255,125,143,.45)';ctx.lineWidth=9;
     ctx.beginPath();ctx.moveTo(a.x-7,a.y-60);ctx.lineTo(a.x,a.y);ctx.stroke();
   }
