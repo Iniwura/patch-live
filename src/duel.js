@@ -129,7 +129,7 @@ function buildEffectButtons(){
     ? ['meteor','moon','reverse','hyper','magnet','blackout'].map(id=>({id,icon:{meteor:'✳',moon:'◌',reverse:'↟',hyper:'↯',magnet:'◎',blackout:'◒'}[id],name:id.toUpperCase(),description:'COMPOSABLE PHYSICS',command:'!patch '+id,key:'patch:'+id}))
     :COMMANDS.filter(p=>p.side===activeTab).map(p=>({...p,command:'!power '+p.id,key:'power:'+p.id}));
   for(const item of list){
-    const b=document.createElement('button');b.type='button';b.dataset.command=item.key;
+    const b=document.createElement('button');b.type='button';b.dataset.command=item.key;b.disabled=actualLive;
     const icon=document.createElement('span');icon.textContent=item.icon;
     const label=document.createElement('b');label.textContent=item.name;
     const help=document.createElement('small');help.textContent=item.description;
