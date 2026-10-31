@@ -551,6 +551,8 @@ const twitch=new TwitchChat({
     $('connection-state').classList.toggle('live',actualLive);
     $('connection-state').classList.toggle('connecting',connection==='connecting');
     $('connection-text').textContent=actualLive?'TWITCH / AUTHENTICATED':connection==='connecting'?'TWITCH / CONNECTING':'OFFLINE / SIMULATED';
+    $('broadcast-source').textContent=actualLive?'TWITCH CHAT LIVE':connection==='connecting'?'TWITCH CONNECTING':'OFFLINE / SIMULATED';
+    $('connection-disclosure').textContent=actualLive?'TWITCH EVENTSUB SUBSCRIPTION ACTIVE. LOCAL TEST VOTING IS DISABLED.':'PROTOTYPE / REAL TWITCH IS NOT CONNECTED. NO SIMULATED EVENTS ARE PRESENTED AS LIVE.';
     $('twitch-connect').textContent=actualLive?'TWITCH CONNECTED ✓':'CONNECT TWITCH ↗';
     $('show-btn').disabled=actualLive;
     $('auto-chaos').disabled=actualLive;
