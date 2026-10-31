@@ -42,7 +42,8 @@ if(canvas){
     ctx.fillText('AUDIENCE-AUTHORED BOSS / OFFLINE PREVIEW',43,63);
     ctx.restore();
   }
-  function frame(ms){draw(ms);if(!reduce)id=requestAnimationFrame(frame);}
+  let lastDraw=-100;
+  function frame(ms){if(ms-lastDraw>=32||reduce){draw(ms);lastDraw=ms;}if(!reduce)id=requestAnimationFrame(frame);}
   frame(0);
   addEventListener('pagehide',()=>cancelAnimationFrame(id),{once:true});
 }
