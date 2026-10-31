@@ -88,7 +88,12 @@ function resolveVote(){
         state.hudText=effect.name;
         state.hudSmall=(SIDE_INFO[effect.side]?.label||'AUDIENCE POWER')+' · '+(authors.join(', ')||'LOCAL VIEWERS');
         state.shake=6;state.flashes=.11;
-        impact(effect.side==='ally'?'CHAT SAVES YOU':effect.side==='enemy'?'CHAT BETRAYS YOU':'ARENA REWRITTEN',effect.side==='ally'?'':'pink');
+        const headlines={
+          medkit:'HEAL +24!',shield:'AEGIS ACTIVATED!',lance:'LANCE EQUIPPED!',cannon:'RAILGUN EQUIPPED!',vampire:'VAMPIRE EQUIPPED!',overtime:'BONUS +10 SEC!',
+          bossheal:'BOSS +35 HP!',armor:'BOSS ARMORED!',frenzy:'BOSS FRENZY!',shackle:'MOVEMENT NERFED!',reverse:'CONTROLS REVERSED!',timecut:'TIME STOLEN!',
+          squeeze:'WALLS CLOSING!',crossfire:'CROSSFIRE!',eclipse:'ARENA ECLIPSED!',shock:'SHOCK ZONE!',evolve:'BOSS EVOLVES!',shuffle:'TELEPORTED!'
+        };
+        impact(headlines[effect.id]||effect.name+'!',effect.side==='ally'?'':'pink');
         displayFeed('POWER / '+effect.name,effect.description+' · '+(authors.join(', ')||'LOCAL'),'hot');
         for(let i=0;i<28;i++)sparks(effect.side==='ally'?state.player.x:state.boss.x,effect.side==='ally'?state.player.y:state.boss.y,SIDE_INFO[effect.side].color);
         synth(effect.side==='ally'?580:145,.24,'sawtooth',.06);
@@ -322,7 +327,7 @@ function updateUI(){
   const phase=state.boss.evolution+1;
   $('round-indicator').textContent=state.guided?'GUIDED / OFFLINE':'CHAPTER '+['I','II','III','IV'][Math.min(3,phase-1)]+' — '+(state.boss.form==='PRIME'?'FIRST STRIKE':state.boss.form);
   $('boss-name').textContent=BOSS_FORMS[state.boss.form]?.name||'THE ARCHITECT';
-  $('boss-percent').textContent=Math.ceil(100*state.boss.health/state.boss.maxHealth)+'%';
+  $('boss-percent').textContent=Math.ceil(state.boss.health)+' / '+state.boss.maxHealth+' HP';
   $('boss-bar-fill').style.width=100*state.boss.health/state.boss.maxHealth+'%';
   $('health-number').textContent=Math.ceil(state.player.health);
   $('health-fill').style.width=state.player.health+'%';
@@ -411,6 +416,22 @@ function drawPlayer(time){
   ctx.fillStyle='#0c1214';ctx.fillRect(-9,-16+bounce,5,4);ctx.fillRect(5,-16+bounce,5,4);
   ctx.strokeStyle='#a8a0aa';ctx.lineWidth=4;
   ctx.beginPath();ctx.moveTo(-12,24);ctx.lineTo(-18,40);ctx.moveTo(12,24);ctx.lineTo(18,40);ctx.stroke();
+  if(state.weapon!=='reflect'&&state.elapsed<state.weaponUntil){
+    ctx.save();ctx.rotate(-.28);ctx.shadowBlur=15;
+    if(state.weapon==='lance'){
+      ctx.strokeStyle='#d9ff7f';ctx.lineWidth=9;ctx.shadowColor='#d9ff7f';ctx.beginPath();ctx.moveTo(8,4);ctx.lineTo(105,-45);ctx.stroke();
+      ctx.fillStyle='#f7ffa8';ctx.beginPath();ctx.moveTo(95,-45);ctx.lineTo(126,-68);ctx.lineTo(115,-34);ctx.closePath();ctx.fill();
+    }else if(state.weapon==='cannon'){
+      ctx.fillStyle='#b2e4ff';ctx.shadowColor='#80caff';ctx.fillRect(11,-13,98,25);
+      ctx.fillStyle='#202f4f';ctx.fillRect(28,-10,64,19);
+      ctx.fillStyle='#f2ffaf';ctx.fillRect(100,-17,17,32);
+    }else{
+      ctx.strokeStyle='#ed96fc';ctx.lineWidth=10;ctx.shadowColor='#e7a0ff';
+      ctx.beginPath();ctx.arc(35,-3,55,-.85,.9);ctx.stroke();
+      ctx.fillStyle='#f6b2ff';ctx.beginPath();ctx.arc(75,-25,10,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
   if(p.shields>0){ctx.strokeStyle='#bde5ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,-7,52,0,Math.PI*2);ctx.stroke();}
   if(p.parryFlash>0){
     const k=p.parryFlash/.27;
