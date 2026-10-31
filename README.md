@@ -1,54 +1,91 @@
-# PATCH//LIVE — Codex × TwitchCon
+# PATCH//LIVE — THE COMPILER
 
-PATCH//LIVE is a cinematic browser physics game where a streamer fights one three-act boss encounter while the audience composes bounded reality patches. The v0.7 editorial/celestial direction is preserved, but the product is now deliberately split into a cinematic landing page and an immersive game route.
+**The audience writes the monster. The streamer breaks the code.**
 
-## What is ready
+PATCH//LIVE is a fast browser raid encounter for Twitch. Viewers can help the streamer, sabotage them, mutate a gigantic original machine-beast, alter the arena, and change the clock. The streamer has one essential skill: **reflect incoming audience-authored weapons into the monster's execution core.**
 
-- `/` is marketing-only: a cinematic teaser, the three encounter acts, and one clear `ENTER THE ARENA` path. It does not import the game engine or mount voting/chat controls.
-- `/play/` is the standalone game: a 16:9 Architect arena, streamer controls, anchor HUD, boss bar, rule forge, provenance feed, offline Chat Lab, Twitch bridge, pause/fullscreen controls, and genuine win/lose outcome cards.
-- `START FREE RUN` gives the streamer direct control. `RUN OFFLINE SHOWCASE` runs a 75–90 second assisted journey: named local viewers vote through the same strict compiler and vote model as Twitch, three real patches change terrain/hazards/boss behaviour, visible scars persist, and viewer names are credited in the final lineage.
-- The encounter is one 90-second boss fight: Ignition wakes anchor one, Fracture wakes anchor two and escalates hazards, Collapse wakes the final anchor and exposes the Architect's core for dash attacks.
-- Every offline frame identifies itself as `OFFLINE / SIMULATED CHAT` or `GUIDED OFFLINE SHOWCASE`. The local chat lab never claims to be Twitch.
-- Movement includes 120ms jump buffering, 100ms coyote time, input clearing on focus loss/hidden windows, pause/resume safety, dash invulnerability, contact feedback, telegraphed boss attacks, and responsive touch controls.
-- Streamer controls include pause, veto cooldown, fullscreen, audio toggle, route exit, run-card copy, and reduced-motion-compatible visual treatment.
-- `src/twitch.js` still contains the browser OAuth/EventSub path. It is intentionally unverified because Twitch developer 2FA blocks app registration. No live Twitch claim is made.
+Built for the **Codex × TwitchCon Hackathon** (November 2, 2026 deadline). This is an independent project, not an official OpenAI or Twitch game; the illustrated Compiler is original artwork and does not reproduce an OpenAI mascot, logo, or trademark.
 
-## Source map
+## Launch the experience
 
-- `index.html` + `src/landing.*`: marketing-only landing route with a lightweight teaser renderer.
-- `play/index.html` + `src/play.*`: standalone immersive game route and responsive control room.
-- `src/engine.js`: Architect physics, three-act progression, anchor objective, dash combat, telegraphed boss attacks, persistent patch traces, guided controller, and procedural artwork.
-- `src/main.js`: legacy compatibility entry retained for the prior shell; the active game controller is `src/play.js`.
-- `src/patches.js`: exact six-effect allowlist, canonical compound recipes, one-vote-per-user round model.
-- `src/demo.js`: local-only named fixtures. It makes no network calls and cannot impersonate Twitch.
-- `src/twitch.js`: OAuth/EventSub client retained for a later user-authenticated test.
-- `scripts/build.mjs`: static `dist/` output.
-- `scripts/inline.mjs`: standalone `dist-standalone/index.html` for offline judging.
+- **[Landing page](https://patch-live.vercel.app/)** — cinematic, animated preview of the actual Compiler monster.
+- **[THE COMPILER / LAST STAND](https://patch-live.vercel.app/duel/)** — the audience-directed playable boss encounter.
+- [Original Architect mode](https://patch-live.vercel.app/play/) — preserved legacy three-act game.
 
-## Run locally
+The new game is on `/duel/`, and the landing page now opens it directly.
+
+### What viewers can do
+
+Votes run in bounded rounds; **one counted ballot per Twitch user ID**. A viewer may change their vote before the round closes but cannot increase its weight by spamming.
+
+| Command | Examples | Actual consequence |
+|---|---|---|
+| `!power` — Save | `medkit`, `shield`, `lance`, `cannon`, `vampire`, `overtime` | Restore HP, absorb a hit, equip a new visible weapon, or add time |
+| `!power` — Sabotage | `bossheal`, `armor`, `frenzy`, `shackle`, `reverse`, `timecut` | Heal/armor the monster, accelerate attacks, restrict movement, reverse controls, or steal time |
+| `!power` — Arena | `squeeze`, `crossfire`, `eclipse`, `shock`, `evolve`, `shuffle` | Shrink the arena, spawn additional attack lanes, cause darkness or shock, evolve the boss, teleport the streamer |
+| `!patch` — Physics | `meteor`, `moon`, `reverse`, `hyper`, `magnet`, `blackout` | Six allowlisted physical laws; compatible pairs such as `!patch meteor+moon` |
+
+The server never executes arbitrary viewer-supplied commands. All chat input is parsed into exact, allowlisted, bounded effects. Gameplay caps include maximum HP, boss maximum HP, finite timed debuffs, and minimum remaining clock time.
+
+### What makes the monster different
+
+**THE COMPILER** is an original procedurally animated coding-themed monster. It has an articulated chassis, mechanical claws, horned crown, diagnostic face, luminous execution core, and a multi-layer rift arena. Viewer-authored rule wins trigger three actual creature morphologies:
+
+- **Stack Overflow** — furnace-colored weapons and catastrophe attacks.
+- **Recursive Entity** — orbital fragments, altered gravity and recurring strikes.
+- **Null Devourer** — winged silhouette, darkness and void attacks.
+
+Armor votes build physical metal plates on the body; Frenzy votes electrify its limbs. Every successful return shot damages the boss. The finale credits the last five audience choices with viewer names, instead of only revealing a score.
+
+## Start, play, and test
+
+Use `ENTER THE ARENA` for manual controls: **A/D or arrows** move, **Space/J** reflects, **Shift/K** dashes. On phones, touch controls provide the same actions.
+
+Use `WATCH THE CHAOS` for the **explicitly offline** guided demo. Six or more simulated viewers vote through the same bounded parser and progression rules. The encounter demonstrates weapon modification, boss armor, arena shrinkage, physics mutation, clock manipulation and healing. The assisted character still uses actual collision, reflection damage and game win/lose logic.
+
+You can also use the in-game OFFLINE CHAT LAB to send test `!power` or `!patch` commands without Twitch credentials. Offline messages are always identified as local simulations.
+
+### Twitch connection
+
+1. Create a **Public** Twitch developer application (enable 2FA on the Twitch account if the developer console requires it).
+2. Register the OAuth redirect **exactly**: `https://patch-live.vercel.app/duel/` including trailing slash.
+3. Open `/duel/`, click **CONNECT TWITCH**, enter the app's **public Client ID** and authorize the broadcaster.
+4. The game uses the existing Twitch OAuth + EventSub WebSocket implementation with `user:read:chat` and subscribes to `channel.chat.message` for the authorized broadcaster. It should only mark the chat LIVE when the subscription has been accepted.
+5. Send a command from another chat account to the broadcaster's channel, and verify the vote, credited username, effect, and win/lose behavior.
+
+**Current verification limitation:** no authenticated real Twitch EventSub event has been captured in this project yet. This instruction is a flow to test, not a claim the connection has already succeeded. Client secrets and tokens must never be shared in public threads or committed to GitHub. The Client ID alone is public.
+
+The live broadcaster should open the game in a normal browser and use a window capture or OBS browser source that supports the auth session. The stream must contain *actual* Twitch chat if it is being presented as Twitch footage.
+
+## Local development
+
+Node 20+ is recommended.
 
 ```bash
-npm install       # optional: there are no runtime dependencies
-npm test          # authored suite
-npm run build     # writes dist/
-node scripts/inline.mjs
-npm run dev       # http://localhost:4173
+npm install
+npm test
+npm run build
+npm run dev
 ```
 
-For the judge journey:
+Open `http://localhost:4173/duel/`.
 
-1. Open `/` and use `ENTER THE ARENA`, or go directly to `/play/`.
-2. Select `RUN OFFLINE SHOWCASE` to watch the six `[OFFLINE SIM]` activity entries, three patch impacts, persistent run DNA, all act transitions, and the final Architect duel.
-3. Use the Chat Lab to send a named command or close a round manually. These controls are local simulation only.
-4. Use the fullscreen control for a streamer/OBS window capture. This is a game view, not a claimed authenticated Browser Source relay.
+Code map:
 
-## Release truth
+- `src/codex-monster.js` — original procedural boss art, three forms, armored and frenzied overlays, cached architectural stage.
+- `src/duel.js` and `src/duel.css` — the reflect-to-defeat arcade loop, power runtime, HUD, audio and touch controls.
+- `src/audience-director.js` — 18 effects, strict allowlisted parser, normalized Twitch IDs and vote tally.
+- `src/boss-evolution.js` — bounded boss DNA, attack choices and gameplay physics.
+- `src/twitch.js` — OAuth and validated EventSub WebSocket connection.
+- `src/landing.js` — cinematic teaser sharing the actual animated boss.
+- `play/`, `src/engine.js` — preserved older Architect encounter.
+- `tests/` — unit, regression and renderer smoke tests.
+- `scripts/build.mjs` — static deployment for Vercel.
 
-- Full source: [github.com/Iniwura/patch-live](https://github.com/Iniwura/patch-live), release commit `6498385c9f70f97cbf10283498ad20452f195399`.
-- Production deployment for that source: [patch-live.vercel.app](https://patch-live.vercel.app/) and [patch-live.vercel.app/play/](https://patch-live.vercel.app/play/). The immutable deployment is [patch-live-k23jd6mi0-iniwura-akurus-projects.vercel.app](https://patch-live-k23jd6mi0-iniwura-akurus-projects.vercel.app/).
-- Local static output includes both `/` and `/play/`; `npm run build` copies the independent route into `dist/play/` and the standalone inliner produces the game route as `dist-standalone/index.html`.
-- Real Twitch OAuth/EventSub remains unverified and blocked by developer 2FA. A real Client ID, broadcaster account, authorization, subscription, and chat test are still required before showing live footage.
-- No token, client secret, or fabricated session identifier belongs in source, logs, screenshots, or the submission.
-- Capture the genuine Codex session ID with `/status` in this same primary Codex conversation before submission. No ID is invented in this package.
+## Release and submission integrity
 
-See [CODEX_WORKLOG.md](CODEX_WORKLOG.md), [LIVE_EVIDENCE.md](LIVE_EVIDENCE.md), and [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for the handoff evidence and remaining gates.
+The real foundation and original Architect game were developed in the user's genuine Codex desktop thread. Later art, raid-mode and audience-director changes were made in ChatGPT and on GitHub. **Do not claim that the whole project was written by Codex**. Keep the actual Codex transcript and retrieve its session ID using `/status`.
+
+The official rules require a repository, a demo video shorter than three minutes showing the actual project operating **on Twitch** and how Codex was used, a description and the authentic Codex session ID. An offline simulation is not a substitute for the live evidence.
+
+See [CODEX_WORKLOG.md](CODEX_WORKLOG.md), [AUDIENCE_DIRECTOR_RELEASE.md](AUDIENCE_DIRECTOR_RELEASE.md), and [LAST_STAND_EXPERIMENT.md](LAST_STAND_EXPERIMENT.md) for history and constraints.
