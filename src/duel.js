@@ -1,4 +1,5 @@
-import { PATCHES, VoteRound, canonicalVoteUser, compilePatch } from './patches.js';
+import { compilePatch } from './patches.js';
+import { POWERS, SIDE_INFO, AudienceRound, canonicalAudienceUser, parseAudienceCommand, applyPower, hasPower } from './audience-director.js';
 import { demoChatEvent } from './demo.js';
 import { BOSS_FORMS, evolveArchitect, bossRuleDynamics } from './boss-evolution.js';
 import { drawEvolvedArchitect } from './boss-art.js';
@@ -6,7 +7,7 @@ import { drawEvolvedArchitect } from './boss-art.js';
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
 const ctx = canvas.getContext('2d', {alpha:false});
-const W=1280,H=720, FLOOR=606, BOSS_X=963, BOSS_Y=315, ROUND_MS=8000;
+const W=1280,H=720, FLOOR=606, BOSS_X=963, BOSS_Y=315, ROUND_MS=12000;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const random=(min,max)=>Math.random()*(max-min)+min;
 const keys=new Set();
@@ -14,13 +15,13 @@ let counter=0, last=0, audio=null, toastTimer=0, round, seed=0;
 let state;
 
 function makeState(){
-  round=new VoteRound(ROUND_MS);
+  round=new AudienceRound(ROUND_MS);
   return {
     running:false, guided:false, finished:false, elapsed:0, duration:60,
-    player:{x:316,y:FLOOR-32, vx:0, health:100, invuln:0, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
+    player:{x:316,y:FLOOR-32, vx:0, health:100, shields:0, invuln:0, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
     boss:{x:BOSS_X,y:BOSS_Y,maxHealth:360,health:360,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
     attacks:[], refractions:[], particles:[], ambient:[], nextAttack:1.3,
-    activePatch:null, patchEnds:0, combo:0, reflects:0, points:0,
+    activePatch:null, patchEnds:0, modifiers:{}, weapon:'reflect', weaponUntil:0, shockNext:2, combo:0, reflects:0, points:0,
     hudText:'MAKE YOUR FIRST MOVE', hudSmall:'WAIT FOR A TELEGRAPH. REFLECT AT THE LAST SECOND.',
     hitstop:0, shake:0, flashes:0, wave:0, demoIndex:0, sampleVotes:0,
     authors:new Set(), history:[], result:null,
@@ -28,14 +29,10 @@ function makeState(){
 }
 state=makeState();
 
-const COMMANDS=[
-  {id:'meteor',label:'METEOR',icon:'✳'},
-  {id:'moon',label:'MOON',icon:'◌'},
-  {id:'reverse',label:'REVERSE',icon:'↟'},
-  {id:'hyper',label:'HYPER',icon:'↯'},
-  {id:'magnet',label:'MAGNET',icon:'◎'},
-  {id:'blackout',label:'ECLIPSE',icon:'◒'}
-];
+const COMMANDS=POWERS;
+const TABS=['ally','enemy','arena','physics'];
+let activeTab='ally';
+let actualLive=false;
 
 function displayFeed(head,body,kind='normal'){
   const root=$('feed'), el=document.createElement('div');
@@ -62,85 +59,110 @@ function synth(freq,duration=.09,type='triangle',vol=.06){
     o.connect(g);g.connect(audio.destination);o.start();o.stop(t+duration+.015);
   }catch{}
 }
-function castLocalVote(name,command){
+function acceptChatVote(evt,origin='local'){
   if(!state.running)return {ok:false,message:'START THE FIGHT FIRST'};
-  const evt=demoChatEvent(name,command,++counter);
-  const p=canonicalVoteUser(evt);
-  if(!p)return {ok:false,message:'INVALID ALLOWLISTED !PATCH COMMAND'};
-  if(!round.vote(p.userId,p.patchId,Date.now(),p.name))return {ok:false,message:'VOTE WAS ALREADY CAST OR ROUND CLOSED'};
+  const p=canonicalAudienceUser(evt);
+  if(!p)return {ok:false,message:'INVALID / USE !power medkit OR !patch meteor+moon'};
+  if(!round.vote(p.userId,p,Date.now(),p.name))return {ok:false,message:'VOTE ALREADY CAST, OR ROUND CLOSED'};
   state.sampleVotes++;
-  displayFeed(p.name.toUpperCase()+' / OFFLINE',p.patchId.toUpperCase().replace('+',' + '),'hot');
-  const winner=round.winner();
-  $('next-effect').textContent=winner?'LEADING · '+winner.toUpperCase().replace('+',' + '):'AWAITING CHAT';
+  displayFeed(p.name.toUpperCase()+' / '+(origin==='twitch'?'TWITCH':'OFFLINE'),p.id.toUpperCase().replace('+',' + '),p.type==='power'?'good':'hot');
+  const winner=round.leader();
+  $('next-effect').textContent=winner?'LEADING · '+winner.id.toUpperCase().replace('+',' + '):'AWAITING CHAT';
   updateVoteUI();synth(280,.035,'square',.017);
-  return {ok:true,message:'LOCAL TEST ACCEPTED · '+p.patchId.toUpperCase()};
+  return {ok:true,message:(origin==='twitch'?'TWITCH VOTE':'LOCAL TEST ACCEPTED')+' · '+p.id.toUpperCase()};
+}
+function castLocalVote(name,command){
+  return acceptChatVote(demoChatEvent(name,command,++counter),'local');
 }
 function resolveVote(){
-  const winner=round.winner();
+  const winner=round.leader();
   if(winner){
-    const recipe=compilePatch(winner);
-    const authors=round.credits(winner);
-    const evo=evolveArchitect(state.boss,recipe);
-    state.activePatch=recipe;state.patchEnds=state.elapsed+8.5;
-    state.boss.morphPulse=1.4;
-    state.boss.weakWindow=Math.max(state.boss.weakWindow,1.2);
-    state.shake=10;state.flashes=.18;
-    state.history.push({recipe:recipe.id,authors:[...authors],form:evo.form});
+    const authors=round.credits(winner.key);
     authors.forEach(x=>state.authors.add(x));
-    const form=BOSS_FORMS[evo.form];
-    state.hudSmall='OFFLINE AUDIENCE MUTATION · '+(authors.join(' + ')||'LOCAL TEST');
-    state.hudText=form.name;
-    impact(evo.form+'!','pink');
-    displayFeed('EVOLUTION 0'+evo.stage+' · '+evo.form,recipe.short+' — '+(authors.join(', ')||'LOCAL VOTERS'),'hot');
-    for(let i=0;i<50;i++)sparks(state.boss.x,state.boss.y,form.color,1);
-    synth(110,.28,'sawtooth',.09);
-    state.nextAttack=Math.min(state.nextAttack,state.elapsed+.62);
-  }else{
-    displayFeed('SYSTEM / OFFLINE','NO VOTES — BOSS KEEPS ITS CURRENT FORM');
-  }
-  round=new VoteRound(ROUND_MS);
+    if(winner.type==='power'){
+      const effect=applyPower(state,winner.id,authors);
+      if(effect){
+        state.history.push({power:effect.id,authors:[...authors],side:effect.side});
+        state.hudText=effect.name;
+        state.hudSmall=(SIDE_INFO[effect.side]?.label||'AUDIENCE POWER')+' · '+(authors.join(', ')||'LOCAL VIEWERS');
+        state.shake=6;state.flashes=.11;
+        impact(effect.side==='ally'?'CHAT SAVES YOU':effect.side==='enemy'?'CHAT BETRAYS YOU':'ARENA REWRITTEN',effect.side==='ally'?'':'pink');
+        displayFeed('POWER / '+effect.name,effect.description+' · '+(authors.join(', ')||'LOCAL'),'hot');
+        for(let i=0;i<28;i++)sparks(effect.side==='ally'?state.player.x:state.boss.x,effect.side==='ally'?state.player.y:state.boss.y,SIDE_INFO[effect.side].color);
+        synth(effect.side==='ally'?580:145,.24,'sawtooth',.06);
+      }
+    }else{
+      const recipe=compilePatch(winner.id);
+      const evo=evolveArchitect(state.boss,recipe);
+      state.activePatch=recipe;state.patchEnds=state.elapsed+10;
+      state.boss.morphPulse=1.4;state.boss.weakWindow=Math.max(state.boss.weakWindow,1.2);
+      state.shake=10;state.flashes=.18;
+      state.history.push({recipe:recipe.id,authors:[...authors],form:evo.form});
+      const form=BOSS_FORMS[evo.form];
+      state.hudText=form.name;state.hudSmall='PHYSICS MUTATION / '+(authors.join(' + ')||'LOCAL TEST');
+      impact(evo.form+'!','pink');displayFeed('EVOLUTION 0'+evo.stage+' · '+evo.form,recipe.short+' · '+(authors.join(', ')||'LOCAL VOTERS'),'hot');
+      for(let i=0;i<50;i++)sparks(state.boss.x,state.boss.y,form.color);
+      synth(110,.28,'sawtooth',.09);
+      state.nextAttack=Math.min(state.nextAttack,state.elapsed+.62);
+    }
+  }else displayFeed('SYSTEM / OFFLINE','NO VOTES — BOSS KEEPS ITS CURRENT FORM');
+  round=new AudienceRound(ROUND_MS);
   updateVoteUI();
 }
+
 function updateVoteUI(){
   $('vote-total').textContent=round.total();
   const counts=round.counts();
   for(const b of document.querySelectorAll('.effect-grid button'))
-    b.classList.toggle('leading',(counts[b.dataset.effect]||0)>0);
+    b.classList.toggle('leading',(counts[b.dataset.command]||0)>0);
 }
 function buildEffectButtons(){
   const box=$('effect-grid');box.replaceChildren();
-  for(const item of COMMANDS){
-    const b=document.createElement('button');b.type='button';
-    b.dataset.effect=item.id;
+  const list=activeTab==='physics'
+    ? ['meteor','moon','reverse','hyper','magnet','blackout'].map(id=>({id,icon:{meteor:'✳',moon:'◌',reverse:'↟',hyper:'↯',magnet:'◎',blackout:'◒'}[id],name:id.toUpperCase(),description:'COMPOSABLE PHYSICS',command:'!patch '+id,key:'patch:'+id}))
+    :COMMANDS.filter(p=>p.side===activeTab).map(p=>({...p,command:'!power '+p.id,key:'power:'+p.id}));
+  for(const item of list){
+    const b=document.createElement('button');b.type='button';b.dataset.command=item.key;
     const icon=document.createElement('span');icon.textContent=item.icon;
-    const label=document.createElement('b');label.textContent=item.label;
-    b.append(icon,label);
+    const label=document.createElement('b');label.textContent=item.name;
+    const help=document.createElement('small');help.textContent=item.description;
+    b.append(icon,label,help);
+    b.title=item.command;
     b.addEventListener('click',()=>{
       const name='guest_'+String(++counter).padStart(3,'0');
-      const result=castLocalVote(name,'!patch '+item.id);
+      const result=castLocalVote(name,item.command);
       if(!result.ok)displayFeed('SYSTEM',result.message);
     });
     box.append(b);
   }
+  document.querySelectorAll('.power-tab').forEach(b=>{
+    b.classList.toggle('active',b.dataset.tab===activeTab);
+    b.setAttribute('aria-selected',String(b.dataset.tab===activeTab));
+  });
+  $('power-command').textContent=activeTab==='physics'?'!patch meteor+moon':'!power '+(list[0]?.id||'medkit');
+  updateVoteUI();
 }
 const demoVotes=[
-  {t:.5,name:'orbitwitch',command:'!patch meteor+moon'},
-  {t:1,name:'void_runner',command:'!patch moon+meteor'},
-  {t:8.3,name:'glitch_7',command:'!patch reverse+magnet'},
-  {t:8.7,name:'riftmaker',command:'!patch magnet+reverse'},
-  {t:16.4,name:'night_sky',command:'!patch blackout+magnet'},
-  {t:16.8,name:'pixel_fiend',command:'!patch blackout+magnet'},
-  {t:24.4,name:'frame_breaker',command:'!patch hyper+meteor'},
-  {t:32.5,name:'moonchild',command:'!patch moon+meteor'}
+  {t:.5,name:'guardian_fox',command:'!power shield'},
+  {t:1,name:'mercy_main',command:'!power shield'},
+  {t:12.4,name:'chaoswitch',command:'!power armor'},
+  {t:12.9,name:'raid_boss',command:'!power armor'},
+  {t:24.6,name:'night_shift',command:'!power squeeze'},
+  {t:25.0,name:'pixel_fiend',command:'!power squeeze'},
+  {t:36.8,name:'orbitwitch',command:'!patch meteor+moon'},
+  {t:37.3,name:'void_runner',command:'!patch moon+meteor'},
+  {t:48.5,name:'clockbreaker',command:'!power timecut'},
+  {t:49.1,name:'troll_9000',command:'!power timecut'},
 ];
 function start(guided){
   state=makeState();state.guided=!!guided;state.running=true;
-  keys.clear();round=new VoteRound(ROUND_MS);
+  keys.clear();round=new AudienceRound(ROUND_MS);
   $('start-screen').classList.add('hidden');
   $('result-screen').classList.add('hidden');
   $('feed').replaceChildren();$('next-effect').textContent='AWAITING CHAT';
   $('round-indicator').textContent=guided?'OFFLINE / GUIDED SHOWCASE':'CHAPTER I — FIRST STRIKE';
   $('auto-chaos').textContent=guided?'AUTO CHAT RUNNING':'AUTO CHAT DEMO';
+  activeTab='ally';buildEffectButtons();
   displayFeed('SYSTEM / OFFLINE','ARENA ARMED. ALL CHAT EVENTS HERE ARE LOCAL SIMULATIONS.','good');
   updateVoteUI();canvas.focus();synth(380,.22,'sawtooth',.045);
 }
@@ -288,9 +310,9 @@ function updateUI(){
   $('combo-info').textContent=state.combo+' × REFLECT CHAIN';
   $('combat-label').querySelector('small').textContent=state.hudSmall;
   $('combat-label').querySelector('strong').textContent=state.hudText;
-  const remain=state.running?round.remaining():8;
+  const remain=state.running?round.remaining():Math.ceil(ROUND_MS/1000);
   $('vote-time').innerHTML=String(remain).padStart(2,'0')+'<span>S</span>';
-  $('vote-progress').style.width=100*(1-remain/8)+'%';
+  $('vote-progress').style.width=clamp(100*(1-remain/(ROUND_MS/1000)),0,100)+'%';
 }
 function drawBackground(time){
   const g=ctx.createLinearGradient(0,0,W,H);
