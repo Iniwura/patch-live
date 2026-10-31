@@ -32,11 +32,12 @@
 <div class="screen-glare" aria-hidden="true"></div>
 <div class="boss-bar"><div class="boss-bar-top"><span><b class="boss-glyph">✳</b> <strong id="boss-name">THE ARCHITECT</strong></span><span id="boss-percent">100%</span></div><div class="boss-bar-track"><i id="boss-bar-fill"></i></div></div>
 <div class="combat-label" id="combat-label" aria-live="polite"><small>THE FIGHT HASN'T STARTED</small><strong>YOUR CHAT. YOUR NIGHTMARE.</strong></div>
+<div class="perk-ribbon" id="perk-ribbon" aria-live="polite">SHIELDS 0</div>
 <div class="impact-title" id="impact-title" aria-hidden="true"></div>
 <div class="screen-overlay" id="start-screen">
 <div class="overline"><span>THE STREAMER</span><i></i><span>THE CROWD</span></div>
 <h2>THEY BUILD IT.<br/><em>YOU BREAK IT.</em></h2>
-<p>Chat architects the attacks. Survive the impact, then <b>reflect their weapons back into the boss.</b> Every hit is a comeback.</p>
+<p>Chat directs the fight: <b>heal you, evolve the monster, steal time, change your weapon, or rewrite the arena.</b> Survive their decisions and reflect the boss attacks to win.</p>
 <div class="start-buttons"><button class="big-cta" id="play-btn">ENTER THE ARENA <b>↗</b></button><button class="demo-cta" id="show-btn">WATCH THE CHAOS <span>▶</span></button></div>
 <span class="play-note">A / D MOVE &nbsp; · &nbsp; SPACE REFLECT &nbsp; · &nbsp; SHIFT DASH &nbsp; · &nbsp; MOBILE TOUCH BELOW</span>
 </div>
@@ -46,17 +47,26 @@
 <div class="touch-controls"><button data-key="left" aria-label="Move left">←</button><button data-key="parry" class="touch-parry" aria-label="Reflect attack">REFLECT <span>✳</span></button><button data-key="dash" aria-label="Dash">DASH</button><button data-key="right" aria-label="Move right">→</button></div>
 </section>
 <aside class="broadcast-rail">
-<div class="rail-header"><span>THE AUDIENCE</span><b>CONTROLS THE NEXT ATTACK</b></div>
-<section class="incoming"><div class="incoming-upper"><span><i></i> NEXT MUTATION</span><span id="vote-time">08<span>S</span></span></div><div class="incoming-track"><i id="vote-progress"></i></div><div class="incoming-main"><span id="next-effect" class="effect-tag">AWAITING CHAT</span><h2>MAKE IT<br/><em>WORSE.</em></h2><p>The crowd picks the next attack. A perfect reflection turns their choice against the boss.</p></div><div class="vote-count"><span id="vote-total">0</span><small>LOCAL VOTES THIS ROUND</small></div></section>
-<section class="attack-builder"><div class="section-label">CHOOSE A MUTATION <span>01—06</span></div><div class="effect-grid" id="effect-grid"></div><p class="builder-hint">Tap a mutation to cast one offline test vote. In a Twitch stream, chat commands use the same compiler.</p></section>
+<div class="rail-header"><span>THE AUDIENCE</span><b>DIRECTS THE WHOLE FIGHT</b></div>
+<section class="incoming"><div class="incoming-upper"><span><i></i> NEXT MUTATION</span><span id="vote-time">12<span>S</span></span></div><div class="incoming-track"><i id="vote-progress"></i></div><div class="incoming-main"><span id="next-effect" class="effect-tag">AWAITING CHAT</span><h2>CHOOSE<br/><em>THE CHAOS.</em></h2><p>Heal the streamer or the monster. Rewrite the weapon, clock, controls, or battlefield. One counted vote per viewer.</p></div><div class="vote-count"><span id="vote-total">0</span><small>LOCAL VOTES THIS ROUND</small></div></section>
+<section class="attack-builder"><div class="section-label">THE CHAT DIRECTOR <span>18 PERKS + 6 RULES</span></div>
+<div class="power-tabs" role="tablist" aria-label="Audience powers">
+<button type="button" class="power-tab active" data-tab="ally" role="tab" aria-selected="true">SAVE</button>
+<button type="button" class="power-tab" data-tab="enemy" role="tab" aria-selected="false">SABOTAGE</button>
+<button type="button" class="power-tab" data-tab="arena" role="tab" aria-selected="false">ARENA</button>
+<button type="button" class="power-tab" data-tab="physics" role="tab" aria-selected="false">PHYSICS</button>
+</div>
+<div class="effect-grid" id="effect-grid"></div>
+<p class="builder-hint">Each tile casts a named <strong>OFFLINE TEST</strong> vote. Viewers can switch votes during a round; spam never adds extra weight.</p>
+<div class="chat-command-help">COMMAND EXAMPLE <code id="power-command">!power medkit</code></div></section>
 <section class="feed-section"><div class="section-label">WHO BUILT THIS? <span>EVENT LOG</span></div><div class="feed" id="feed" aria-live="polite"></div></section>
 <div class="test-control"><button id="auto-chaos">AUTO CHAT DEMO <span>▶</span></button><button id="chat-lab-toggle">CUSTOM CHAT TEST <span>＋</span></button></div>
 <div class="rail-footnote">PROTOTYPE / REAL TWITCH IS NOT CONNECTED.<br/>NO SIMULATED EVENTS ARE PRESENTED AS LIVE.</div>
 </aside>
 </div>
-<section class="underbar"><p><b>THE TWIST.</b> Every attack your viewers choose becomes a weapon you can reflect. The better they make the monster, the more dangerous your comeback.</p><div class="underbar-right">06 MUTATIONS <span>✳</span> ONE IMPOSSIBLE FIGHT</div></section>
+<section class="underbar"><p><b>THE TWIST.</b> The crowd can save you, sabotage you, or rewrite the room. But every brutal attack can still be reflected into the boss. Great chat makes the most unpredictable battles.</p><div class="underbar-right">18 POWERS <span>✳</span> 6 PHYSICS LAWS <span>✳</span> YOUR FIGHT</div></section>
 </main>
-<div class="lab-drawer hidden" id="lab-drawer"><div class="drawer-head"><strong>OFFLINE CHAT LAB</strong><button id="close-lab" aria-label="Close custom chat lab">×</button></div><p>Test the actual allowlisted command compiler. These users are local fixtures, not Twitch viewers.</p><form id="lab-form"><label>VIEWER NAME<input id="viewer" maxlength="25" value="night_owl" required/></label><label>COMMAND<input id="command" maxlength="100" value="!patch meteor+moon" required/></label><button class="big-cta" type="submit">SEND LOCAL COMMAND <b>↗</b></button></form><button id="resolve-now">RESOLVE CURRENT VOTE</button><span class="form-response" id="lab-response">READY FOR LOCAL INPUT.</span></div>
+<div class="lab-drawer hidden" id="lab-drawer"><div class="drawer-head"><strong>OFFLINE CHAT LAB</strong><button id="close-lab" aria-label="Close custom chat lab">×</button></div><p>Test the actual allowlisted command compiler. These users are local fixtures, not Twitch viewers.</p><form id="lab-form"><label>VIEWER NAME<input id="viewer" maxlength="25" value="night_owl" required/></label><label>COMMAND<input id="command" maxlength="100" value="!power medkit" required/></label><button class="big-cta" type="submit">SEND LOCAL COMMAND <b>↗</b></button></form><button id="resolve-now">RESOLVE CURRENT VOTE</button><span class="form-response" id="lab-response">READY FOR LOCAL INPUT.</span></div>
 </div>
 <script type="module" src="/src/duel.js"></script>
 </body>
