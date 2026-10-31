@@ -356,6 +356,7 @@ function drawBackground(time){
 }
 function drawBoss(time){
  const b=state.boss;ctx.save();
+ b.frenzied=hasPower(state,'frenzy');
  if(b.morphPulse>0)ctx.translate(random(-b.morphPulse*4,b.morphPulse*4),random(-b.morphPulse*4,b.morphPulse*4));
  const scale=1.67;ctx.translate(b.x*(1-scale),b.y*(1-scale));ctx.scale(scale,scale);
  drawCodexMonster(ctx,b,time);ctx.restore();
