@@ -2,7 +2,7 @@ import { compilePatch } from './patches.js';
 import { POWERS, SIDE_INFO, AudienceRound, canonicalAudienceUser, parseAudienceCommand, applyPower, hasPower } from './audience-director.js';
 import { demoChatEvent } from './demo.js';
 import { BOSS_FORMS, evolveArchitect, bossRuleDynamics } from './boss-evolution.js';
-import { drawEvolvedArchitect } from './boss-art.js';
+import { drawCodexMonster, drawCompilerStage } from './codex-monster.js';
 import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, disconnectToken, redirectUri } from './twitch.js';
 
 const $ = id => document.getElementById(id);
@@ -85,7 +85,7 @@ function resolveVote(){
       const effect=applyPower(state,winner.id,authors);
       if(effect){
         state.history.push({power:effect.id,authors:[...authors],side:effect.side});
-        state.hudText=effect.name;
+        state.hudText=effect.id==='evolve'?'THE COMPILER EVOLVES':effect.name;
         state.hudSmall=(SIDE_INFO[effect.side]?.label||'AUDIENCE POWER')+' · '+(authors.join(', ')||'LOCAL VIEWERS');
         state.shake=6;state.flashes=.11;
         const headlines={
@@ -106,7 +106,7 @@ function resolveVote(){
       state.shake=10;state.flashes=.18;
       state.history.push({recipe:recipe.id,authors:[...authors],form:evo.form});
       const form=BOSS_FORMS[evo.form];
-      state.hudText=form.name;state.hudSmall='PHYSICS MUTATION / '+(authors.join(' + ')||'LOCAL TEST');
+      state.hudText=({CATACLYSM:'STACK OVERFLOW',SINGULARITY:'RECURSIVE ENTITY',ECLIPSE:'NULL DEVOURER'})[evo.form]||form.name;state.hudSmall='CODEX BEAST MUTATION / '+(authors.join(' + ')||'LOCAL TEST');
       impact(evo.form+'!','pink');displayFeed('EVOLUTION 0'+evo.stage+' · '+evo.form,recipe.short+' · '+(authors.join(', ')||'LOCAL VOTERS'),'hot');
       for(let i=0;i<50;i++)sparks(state.boss.x,state.boss.y,form.color);
       synth(110,.28,'sawtooth',.09);
@@ -326,7 +326,7 @@ function updateUI(){
   $('game-clock').textContent=String(Math.floor(timeLeft/60)).padStart(2,'0')+':'+String(timeLeft%60).padStart(2,'0');
   const phase=state.boss.evolution+1;
   $('round-indicator').textContent=state.guided?'GUIDED / OFFLINE':'CHAPTER '+['I','II','III','IV'][Math.min(3,phase-1)]+' — '+(state.boss.form==='PRIME'?'FIRST STRIKE':state.boss.form);
-  $('boss-name').textContent=BOSS_FORMS[state.boss.form]?.name||'THE ARCHITECT';
+  $('boss-name').textContent=({PRIME:'THE COMPILER',CATACLYSM:'STACK OVERFLOW',SINGULARITY:'RECURSIVE ENTITY',ECLIPSE:'NULL DEVOURER'})[state.boss.form]||'THE COMPILER';
   $('boss-percent').textContent=Math.ceil(state.boss.health)+' / '+state.boss.maxHealth+' HP';
   $('boss-bar-fill').style.width=100*state.boss.health/state.boss.maxHealth+'%';
   $('health-number').textContent=Math.ceil(state.player.health);
@@ -340,66 +340,27 @@ function updateUI(){
   $('vote-progress').style.width=clamp(100*(1-remain/(round.durationMs/1000)),0,100)+'%';
 }
 function drawBackground(time){
-  const g=ctx.createLinearGradient(0,0,W,H);
-  g.addColorStop(0,'#10141f');g.addColorStop(.54,'#151222');g.addColorStop(1,'#0b0a12');
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  const sky=ctx.createRadialGradient(975,240,20,975,290,540);
-  sky.addColorStop(0,state.boss.form==='CATACLYSM'?'#9e4054':state.boss.form==='SINGULARITY'?'#406795':state.boss.form==='ECLIPSE'?'#743365':'#5a446b');
-  sky.addColorStop(.46,'rgba(58,39,77,.55)');sky.addColorStop(1,'rgba(9,7,18,0)');
-  ctx.fillStyle=sky;ctx.fillRect(380,-100,900,830);
-  ctx.globalAlpha=.35;
-  ctx.strokeStyle='#aaa1bc';ctx.lineWidth=1;
-  for(let i=0;i<17;i++){const x=i*94+((time*8)%94);ctx.beginPath();ctx.moveTo(x-280,0);ctx.lineTo(x+100,720);ctx.stroke();}
-  ctx.globalAlpha=1;
-  for(let i=0;i<36;i++){
-    const x=(i*307+47)%W,y=(i*127+82)%480;
-    ctx.fillStyle='rgba(247,236,240,'+(.09+Math.sin(time*.7+i)*.045)+')';
-    ctx.fillRect(x,y,1.5,1.5);
-  }
-  // Graffiti-style celestial monument: flat graphic, readable at stream scale.
-  ctx.save();ctx.translate(960,335);
-  ctx.strokeStyle='rgba(238,215,220,.12)';ctx.lineWidth=3;
-  for(const r of [175,232,287]){ctx.beginPath();ctx.arc(0,0,r,Math.PI*.95,Math.PI*2.1);ctx.stroke();}
-  ctx.rotate(-.16);ctx.fillStyle='rgba(255,111,129,.045)';
-  ctx.fillRect(-310,-150,620,300);ctx.strokeStyle='rgba(255,152,163,.11)';
-  for(let x=-300;x<300;x+=52){ctx.beginPath();ctx.moveTo(x,-150);ctx.lineTo(x+125,150);ctx.stroke();}
+ drawCompilerStage(ctx,time,state.boss.form,state.boss.evolution);
+ if(hasPower(state,'squeeze')){
+  ctx.save();ctx.fillStyle='rgba(255,95,123,.23)';ctx.strokeStyle='#ff8b9b';ctx.lineWidth=8;
+  ctx.fillRect(0,92,185,FLOOR-92);ctx.fillRect(835,92,W-835,FLOOR-92);
+  ctx.beginPath();ctx.moveTo(185,92);ctx.lineTo(185,FLOOR);ctx.moveTo(835,92);ctx.lineTo(835,FLOOR);ctx.stroke();
+  ctx.fillStyle='#ffc2ce';ctx.font='800 15px "DM Mono",monospace';ctx.fillText('WALLS CLOSING',250,566);
   ctx.restore();
-  // Foreground rails draw the action plane across the stage.
-  ctx.fillStyle='#12151d';ctx.fillRect(0,FLOOR,W,114);
-  const floor=ctx.createLinearGradient(0,FLOOR,0,FLOOR+110);
-  floor.addColorStop(0,'#323341');floor.addColorStop(.14,'#181923');floor.addColorStop(1,'#080a12');
-  ctx.fillStyle=floor;ctx.fillRect(0,FLOOR+2,W,114);
-  ctx.fillStyle='#eaff68';ctx.fillRect(0,FLOOR-1,W,3);
-  if(hasPower(state,'squeeze')){
-    ctx.save();ctx.fillStyle='rgba(255,95,123,.22)';ctx.strokeStyle='#ff8b9b';ctx.lineWidth=7;
-    ctx.fillRect(0,95,185,FLOOR-95);ctx.fillRect(835,95,W-835,FLOOR-95);
-    ctx.beginPath();ctx.moveTo(185,95);ctx.lineTo(185,FLOOR);ctx.moveTo(835,95);ctx.lineTo(835,FLOOR);ctx.stroke();ctx.restore();
-  }
-  if(hasPower(state,'shock')){
-    ctx.save();ctx.fillStyle='rgba(255,109,158,.19)';ctx.fillRect(420,FLOOR-53,210,53);
-    ctx.strokeStyle='#ff89bd';ctx.lineWidth=3;ctx.strokeRect(420,FLOOR-53,210,53);
-    ctx.font='700 18px "DM Mono",monospace';ctx.fillStyle='#ffc2d7';ctx.fillText('⚡ SHOCK ZONE',432,FLOOR-65);ctx.restore();
-  }
-  ctx.fillStyle='rgba(234,255,105,.08)';
-  for(let x=0;x<W;x+=65)ctx.fillRect(x+8,FLOOR+26,36,2);
-  ctx.fillStyle='rgba(239,234,232,.22)';
-  ctx.font='700 14px "DM Mono",monospace';ctx.fillText('P // ARENA',42,FLOOR+57);
-  ctx.save();ctx.globalAlpha=.36;ctx.strokeStyle='#b8b2c0';ctx.lineWidth=1;
-  for(let i=0;i<14;i++){const x=i*120-50;ctx.beginPath();ctx.moveTo(x,FLOOR);ctx.lineTo(x+190,H);ctx.stroke();}
-  ctx.restore();
+ }
+ if(hasPower(state,'shock')){
+  ctx.save();ctx.fillStyle='rgba(255,96,161,.23)';ctx.fillRect(420,FLOOR-53,210,53);
+  ctx.strokeStyle='#ff89bd';ctx.lineWidth=4;ctx.strokeRect(420,FLOOR-53,210,53);
+  ctx.font='700 18px "DM Mono",monospace';ctx.fillStyle='#ffc2d7';ctx.fillText('⚡ SHOCK ZONE',432,FLOOR-65);ctx.restore();
+ }
 }
 function drawBoss(time){
-  const b=state.boss;
-  ctx.save();
-  if(b.morphPulse>0)ctx.translate(random(-b.morphPulse*4,b.morphPulse*4),random(-b.morphPulse*4,b.morphPulse*4));
-  const s=2.58;
-  ctx.translate(b.x*(1-s),b.y*(1-s));ctx.scale(s,s);
-  drawEvolvedArchitect(ctx,b,time);
-  ctx.restore();
-  if(b.hitFlash>0){
-    ctx.save();ctx.globalAlpha=b.hitFlash*.7;ctx.strokeStyle='#eaff68';ctx.lineWidth=5;
-    ctx.beginPath();ctx.arc(b.x,b.y,165+(1-b.hitFlash)*80,0,Math.PI*2);ctx.stroke();ctx.restore();
-  }
+ const b=state.boss;ctx.save();
+ if(b.morphPulse>0)ctx.translate(random(-b.morphPulse*4,b.morphPulse*4),random(-b.morphPulse*4,b.morphPulse*4));
+ const scale=1.67;ctx.translate(b.x*(1-scale),b.y*(1-scale));ctx.scale(scale,scale);
+ drawCodexMonster(ctx,b,time);ctx.restore();
+ if(b.hitFlash>0){ctx.save();ctx.globalAlpha=b.hitFlash*.7;ctx.strokeStyle='#dfff83';ctx.lineWidth=5;
+ ctx.beginPath();ctx.arc(b.x,b.y,155+(1-b.hitFlash)*55,0,Math.PI*2);ctx.stroke();ctx.restore();}
 }
 function drawPlayer(time){
   const p=state.player;
