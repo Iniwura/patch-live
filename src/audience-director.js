@@ -90,6 +90,7 @@ export function applyPower(state,id,authors=[]){
     case'bossheal':b.health=Math.min(b.maxHealth,b.health+35);break;
     case'armor':{const gain=Math.min(45,500-b.maxHealth);b.maxHealth+=gain;b.health+=gain;break;}
     case'timecut':state.duration=Math.max(state.elapsed+15,Math.max(25,state.duration-7));break;
+    case'shock':state.shockNext=state.elapsed+1.7;break;
     case'shuffle':p.x=p.x<490?800:205;p.invuln=Math.max(p.invuln,.5);break;
     case'evolve':{
       const path=['meteor+moon','reverse+magnet','blackout+magnet'];
