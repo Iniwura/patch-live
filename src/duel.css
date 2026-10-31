@@ -12,3 +12,26 @@ main{max-width:1920px;margin:0 auto;padding:0 clamp(18px,3.1vw,66px)}.event-top{
 @media(max-width:1000px){.masthead{height:66px}.edition{display:none}.event-top{min-height:140px;grid-template-columns:60px 1fr}.event-meta{display:none}.event-name h1{font-size:clamp(66px,10vw,102px)}.combat-layout{grid-template-columns:minmax(0,1fr)}.broadcast-rail{display:grid;grid-template-columns:1fr 1fr;align-items:start}.rail-header{grid-column:1/-1}.incoming{border-right:1px solid #313039}.attack-builder{border-bottom:1px solid #313039}.feed-section{grid-column:1/-1;min-height:100px}.test-control,.rail-footnote{grid-column:1/-1}.test-control{flex-direction:row}.test-control button{flex:1}.underbar{padding:25px 0}.screen-overlay h2{font-size:clamp(58px,9vw,92px)}}
 @media(max-width:650px){.masthead{padding:0 14px}.logo{font-size:24px}.logo-sigil{font-size:20px}.masthead-right{gap:12px}.exit-link{display:none}.offline-indicator{font-size:8px}.event-top{min-height:114px;grid-template-columns:35px 1fr;gap:5px}.event-name>span{font-size:8px;letter-spacing:1px}.event-number{font-size:8px;margin-top:23px}.event-name h1{font-size:clamp(56px,14vw,89px);margin:12px 0 5px}.combat-layout{gap:8px}.stage-bar{padding:0 11px;font-size:8px;height:35px}.stage-bar #round-indicator{display:none}.canvas-outer{aspect-ratio:1.18}.canvas-outer canvas{object-fit:fill}.boss-bar-top{font-size:9px}.boss-bar-track{height:4px;margin-top:4px}.boss-bar{top:13px}.combat-label{top:15%}.combat-label small{font-size:8px}.combat-label strong{font-size:16px}.screen-overlay{padding:22px;background:linear-gradient(90deg,#09090deF 0%,#09090dbb 68%,#09090d45 100%)}.screen-overlay h2{font-size:52px;margin:17px 0}.screen-overlay p{font-size:11px;max-width:260px;line-height:1.6;margin-bottom:17px}.screen-overlay .overline{font-size:8px}.start-buttons{gap:7px;flex-wrap:wrap}.big-cta{font-size:12px;min-height:42px;padding:11px 12px;gap:10px}.demo-cta{min-height:42px;padding:11px 12px;font-size:11px;gap:8px}.play-note{font-size:7px;margin-top:15px}.stage-bottom{height:49px;padding:0 10px}.health-set>span{font-size:8px}.health-track{width:70px}.health-set>b{font-size:11px}.key-guide{display:none}.combo-info{font-size:8px}.touch-controls{display:grid}.broadcast-rail{display:block}.incoming{padding:18px}.incoming-main{padding:12px 0}.incoming-main h2{font-size:48px}.effect-grid{grid-template-columns:repeat(3,1fr)}.underbar{display:block}.underbar p{font-size:12px}.underbar-right{margin-top:18px;white-space:normal}.result-stats strong{font-size:30px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Audience Director — high-density powers with clear category choice. */
+.power-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 11px}
+.power-tab{min-width:0;padding:10px 2px;background:#1b1b23;border:1px solid #47414a;color:#a6a1ae;font:700 10px 'Barlow Condensed',sans-serif;letter-spacing:.65px}
+.power-tab.active{background:var(--acid);border-color:var(--acid);color:#171914}
+.power-tab[data-tab="enemy"].active{background:#ff798d;border-color:#ff798d}
+.power-tab[data-tab="arena"].active{background:#b6a5ff;border-color:#b6a5ff}
+.power-tab[data-tab="physics"].active{background:#8fd6fb;border-color:#8fd6fb}
+.effect-grid button{min-height:87px;gap:4px;padding:9px 7px;justify-content:flex-start}
+.effect-grid button span{font-size:18px;line-height:1.1}
+.effect-grid button b{font-size:12px;line-height:1;white-space:normal;word-break:normal}
+.effect-grid button small{font:500 9px/1.25 'Space Grotesk',sans-serif;color:#b4aab9;letter-spacing:-.05px;text-align:left}
+.effect-grid button:hover small{color:#eee}
+.chat-command-help{margin-top:11px;padding-top:11px;border-top:1px solid #403a46;display:flex;justify-content:space-between;align-items:center;gap:7px;color:#8d8993;font:500 8px 'DM Mono',monospace}
+.chat-command-help code{color:var(--acid);font:500 10px 'DM Mono',monospace;white-space:nowrap}
+.perk-ribbon{position:absolute;z-index:4;bottom:9%;left:4%;right:4%;max-width:70%;color:#eaff8c;text-shadow:0 2px 12px #0b0915;font:600 clamp(9px,1.1vw,13px) 'DM Mono',monospace;letter-spacing:.5px;line-height:1.7;pointer-events:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+@media(max-width:650px){
+ .power-tab{font-size:11px;min-height:43px}
+ .effect-grid button{min-height:79px}
+ .effect-grid button b{font-size:13px}
+ .effect-grid button small{font-size:10px}
+ .perk-ribbon{font-size:9px;bottom:8%}
+}
