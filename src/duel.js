@@ -8,6 +8,9 @@ import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, di
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
 const ctx = canvas.getContext('2d', {alpha:false});
+const backdrop=document.createElement('canvas');backdrop.width=1280;backdrop.height=720;
+const backdropContext=backdrop.getContext('2d',{alpha:false});
+let backdropKey='';
 const W=1280,H=720, FLOOR=606, BOSS_X=963, BOSS_Y=315, ROUND_MS=12000;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const random=(min,max)=>Math.random()*(max-min)+min;
@@ -348,7 +351,19 @@ function updateUI(){
   $('vote-progress').style.width=clamp(100*(1-remain/(round.durationMs/1000)),0,100)+'%';
 }
 function drawBackground(time){
- drawCompilerStage(ctx,time,state.boss.form,state.boss.evolution);
+ const key=state.boss.form+':'+state.boss.evolution;
+ if(key!==backdropKey){
+   drawCompilerStage(backdropContext,0,state.boss.form,state.boss.evolution);
+   backdropKey=key;
+ }
+ ctx.drawImage(backdrop,0,0);
+ // Only the lightweight particles animate; the architectural layers are cached.
+ ctx.save();ctx.globalAlpha=.2;ctx.fillStyle='#d7ff9b';
+ for(let i=0;i<14;i++){
+   const x=(i*193+41)%W,y=(i*91+time*(8+i%3*5))%530;
+   ctx.fillRect(x,y,1.5,4);
+ }
+ ctx.restore();
  if(hasPower(state,'squeeze')){
   ctx.save();ctx.fillStyle='rgba(255,95,123,.23)';ctx.strokeStyle='#ff8b9b';ctx.lineWidth=8;
   ctx.fillRect(0,92,185,FLOOR-92);ctx.fillRect(835,92,W-835,FLOOR-92);
