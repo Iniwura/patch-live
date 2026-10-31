@@ -189,6 +189,14 @@ function finish(won){
   $('result-reflects').textContent=state.reflects;
   $('result-authors').textContent=state.authors.size;
   $('result-score').textContent=state.points;
+  const recap=$('boss-dna-recap');
+  recap.replaceChildren();
+  for(const decision of state.history.slice(-5)){
+    const item=document.createElement('div');item.className='boss-gene';
+    const title=document.createElement('strong');title.textContent=decision.power?'!power '+decision.power:'!patch '+decision.recipe;
+    const author=document.createElement('small');author.textContent=(decision.authors||[]).join(' + ')||'LOCAL AUDIENCE';
+    item.append(title,author);recap.append(item);
+  }
   impact(won?'KNOCKOUT!':'GAME OVER','pink');
   synth(won?580:80,.45,won?'triangle':'sawtooth',.06);
 }
