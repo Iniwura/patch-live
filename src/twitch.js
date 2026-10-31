@@ -17,15 +17,15 @@ export function getClientId() { return safeGet('localStorage',CLIENT_KEY) || '';
 export function saveClientId(id) { requiredSet('localStorage',CLIENT_KEY,id.trim()); }
 export function getToken() { return safeGet('sessionStorage',TOKEN_KEY); }
 export function disconnectToken() { safeRemove('sessionStorage',TOKEN_KEY); }
-export function redirectUri() { return `${location.origin}/play/`; }
+export function redirectUri(path = '/play/') { return `${location.origin}${path === '/duel/' ? '/duel/' : '/play/'}`; }
 
-export function beginOAuth(clientId) {
+export function beginOAuth(clientId, path = '/play/') {
   if (!/^[a-z0-9]{25,40}$/i.test(clientId)) throw new Error('Enter a valid Twitch application Client ID.');
   saveClientId(clientId);
   const state = Array.from(crypto.getRandomValues(new Uint8Array(24)), x => x.toString(16).padStart(2, '0')).join('');
   requiredSet('sessionStorage',STATE_KEY,state);
   const params = new URLSearchParams({
-    response_type: 'token', client_id: clientId, redirect_uri: redirectUri(),
+    response_type: 'token', client_id: clientId, redirect_uri: redirectUri(path),
     scope: 'user:read:chat', state
   });
   location.assign(`https://id.twitch.tv/oauth2/authorize?${params}`);

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#08090d"/>
+<title>PATCH//LIVE — THE COMPILER | LAST STAND</title>
+<meta name="description" content="A Twitch-shaped arcade showdown. Chat designs the attacks. The streamer turns them back."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/src/duel.css"/>
+</head>
+<body>
+<div class="broadcast-app">
+<header class="masthead">
+<a class="logo" href="/" aria-label="Back to PATCH LIVE home"><span class="logo-sigil">✳</span>PATCH<span class="logo-break">//</span>LIVE</a>
+<div class="edition">EXPERIMENT 002 <span class="slash-mark">/</span> LIVE ARENA PROTOTYPE</div>
+<div class="masthead-right"><span class="offline-indicator" id="connection-state"><i></i><span id="connection-text">OFFLINE / SIMULATED</span></span><button class="twitch-connect" id="twitch-connect">CONNECT TWITCH ↗</button><a href="/play/" class="exit-link">ORIGINAL GAME ↗</a></div>
+</header>
+<main>
+<section class="event-top">
+<div class="event-number">P//02</div>
+<div class="event-name"><span>THE CROWD IS THE WEAPON</span><h1>LAST <em>STAND.</em></h1></div>
+<div class="event-meta"><span>A NEW KIND OF RAID BOSS</span><strong>VS. THE COMPILER.</strong><small>EVERY VOTE REWRITES THE BEAST.</small></div>
+</section>
+<div class="combat-layout">
+<section class="stage" aria-label="Playable Last Stand boss encounter" id="stage">
+<div class="stage-bar"><div><span class="status-dot"></span> <span id="broadcast-source">OFFLINE / SIMULATED</span> <b>01</b></div><div id="round-indicator">CHAPTER I — THE FIRST STRIKE</div><div class="game-clock" id="game-clock">01:00</div></div>
+<div class="canvas-outer">
+<canvas id="fight" width="1280" height="720" aria-label="The playable LAST STAND encounter. Move using arrows or A/D; hit Space to reflect attacks; Shift to dodge." tabindex="0"></canvas>
+<div class="screen-glare" aria-hidden="true"></div>
+<div class="boss-bar"><div class="boss-bar-top"><span><b class="boss-glyph">✳</b> <strong id="boss-name">THE COMPILER</strong></span><span id="boss-percent">100%</span></div><div class="boss-bar-track"><i id="boss-bar-fill"></i></div></div>
+<div class="combat-label" id="combat-label" aria-live="polite"><small>THE FIGHT HASN'T STARTED</small><strong>YOUR CHAT. YOUR NIGHTMARE.</strong></div>
+<div class="perk-ribbon" id="perk-ribbon" aria-live="polite">SHIELDS 0</div>
+<div class="impact-title" id="impact-title" aria-hidden="true"></div>
+<div class="screen-overlay" id="start-screen">
+<div class="overline"><span>THE STREAMER</span><i></i><span>THE CROWD</span></div>
+<h2>THEY WRITE IT.<br/><em>YOU FIGHT IT.</em></h2>
+<p>Face THE COMPILER: a colossal code-born beast forged by chat. <b>Viewers change its armor, evolution, weapons, the battlefield and the clock.</b> Time your reflects to break its execution core.</p>
+<div class="start-buttons"><button class="big-cta" id="play-btn">ENTER THE ARENA <b>↗</b></button><button class="demo-cta" id="show-btn">WATCH THE CHAOS <span>▶</span></button></div>
+<span class="play-note">A / D MOVE &nbsp; · &nbsp; SPACE REFLECT &nbsp; · &nbsp; SHIFT DASH &nbsp; · &nbsp; MOBILE TOUCH BELOW</span>
+</div>
+<div class="screen-overlay result-screen hidden" id="result-screen"><div class="overline" id="result-label">RUN COMPLETE</div><h2 id="result-title">YOU<br/><em>SURVIVED.</em></h2><p id="result-description"></p><div class="result-stats"><div><strong id="result-reflects">0</strong><span>REFLECTS</span></div><div><strong id="result-authors">0</strong><span>CHAT ARCHITECTS</span></div><div><strong id="result-score">0</strong><span>POINTS</span></div></div><div class="boss-dna-recap" id="boss-dna-recap" aria-label="Viewer-authored boss history"></div><button id="again-btn" class="big-cta">RUN IT BACK <b>↗</b></button></div>
+</div>
+<div class="stage-bottom"><div class="health-set"><span>STREAMER</span><div class="health-track"><i id="health-fill"></i></div><b id="health-number">100</b></div><div class="combo-info" id="combo-info">0 × REFLECT CHAIN</div><div class="key-guide"> <kbd>←</kbd><kbd>→</kbd> MOVE <kbd>SPACE</kbd> REFLECT <kbd>SHIFT</kbd> DASH</div></div>
+<div class="touch-controls"><button data-key="left" aria-label="Move left">←</button><button data-key="parry" class="touch-parry" aria-label="Reflect attack">REFLECT <span>✳</span></button><button data-key="dash" aria-label="Dash">DASH</button><button data-key="right" aria-label="Move right">→</button></div>
+</section>
+<aside class="broadcast-rail">
+<div class="rail-header"><span>THE AUDIENCE</span><b>DIRECTS THE WHOLE FIGHT</b></div>
+<section class="incoming"><div class="incoming-upper"><span><i></i> NEXT MUTATION</span><span id="vote-time">12<span>S</span></span></div><div class="incoming-track"><i id="vote-progress"></i></div><div class="incoming-main"><span id="next-effect" class="effect-tag">AWAITING CHAT</span><h2>CHOOSE<br/><em>THE CHAOS.</em></h2><p>Heal the streamer or the monster. Rewrite the weapon, clock, controls, or battlefield. One counted vote per viewer.</p></div><div class="vote-count"><span id="vote-total">0</span><small>LOCAL VOTES THIS ROUND</small></div></section>
+<section class="attack-builder"><div class="section-label">THE CHAT DIRECTOR <span>18 PERKS + 6 RULES</span></div>
+<div class="power-tabs" role="tablist" aria-label="Audience powers">
+<button type="button" class="power-tab active" data-tab="ally" role="tab" aria-selected="true">SAVE</button>
+<button type="button" class="power-tab" data-tab="enemy" role="tab" aria-selected="false">SABOTAGE</button>
+<button type="button" class="power-tab" data-tab="arena" role="tab" aria-selected="false">ARENA</button>
+<button type="button" class="power-tab" data-tab="physics" role="tab" aria-selected="false">PHYSICS</button>
+</div>
+<div class="effect-grid" id="effect-grid"></div>
+<p class="builder-hint">Each tile casts a named <strong>OFFLINE TEST</strong> vote. Viewers can switch votes during a round; spam never adds extra weight.</p>
+<div class="chat-command-help">COMMAND EXAMPLE <code id="power-command">!power medkit</code></div></section>
+<section class="feed-section"><div class="section-label">WHO BUILT THIS? <span>EVENT LOG</span></div><div class="feed" id="feed" aria-live="polite"></div></section>
+<div class="test-control"><button id="auto-chaos">AUTO CHAT DEMO <span>▶</span></button><button id="chat-lab-toggle">CUSTOM CHAT TEST <span>＋</span></button></div>
+<div class="rail-footnote" id="connection-disclosure">PROTOTYPE / REAL TWITCH IS NOT CONNECTED. NO SIMULATED EVENTS ARE PRESENTED AS LIVE.</div>
+</aside>
+</div>
+<section class="underbar"><p><b>THE TWIST.</b> The crowd compiles the monster in real time. Every decision modifies its chassis, attacks, equipment, arena or clock. The streamer is the only one who can break the core.</p><div class="underbar-right">18 POWERS <span>✳</span> 6 PHYSICS LAWS <span>✳</span> YOUR FIGHT</div></section>
+</main>
+<div class="twitch-modal hidden" id="twitch-modal" role="dialog" aria-modal="true" aria-labelledby="twitch-modal-title">
+<div class="twitch-modal-content"><div class="drawer-head"><strong id="twitch-modal-title">CONNECT A REAL TWITCH CHAT</strong><button id="twitch-close" aria-label="Close Twitch connection">×</button></div>
+<p>Live mode requires a registered Twitch developer application, broadcaster authorization, and an EventSub chat subscription. No client secret is needed.</p>
+<form id="twitch-form"><label>PUBLIC TWITCH CLIENT ID<input id="twitch-client-id" placeholder="Your Twitch application's Client ID" autocomplete="off" required/></label>
+<div class="callback-value"><small>REGISTER THIS EXACT OAUTH REDIRECT:</small><code id="twitch-callback"></code></div>
+<button class="big-cta" type="submit">AUTHORIZE WITH TWITCH <b>↗</b></button></form>
+<p class="twitch-feedback" id="twitch-feedback"></p><button type="button" id="twitch-disconnect">DISCONNECT TWITCH</button>
+<p class="twitch-help">OFFLINE CHAT LAB remains available without credentials. Only a successfully authenticated EventSub connection can set the badge to LIVE.</p></div></div>
+<div class="lab-drawer hidden" id="lab-drawer"><div class="drawer-head"><strong>OFFLINE CHAT LAB</strong><button id="close-lab" aria-label="Close custom chat lab">×</button></div><p>Test the actual allowlisted command compiler. These users are local fixtures, not Twitch viewers.</p><form id="lab-form"><label>VIEWER NAME<input id="viewer" maxlength="25" value="night_owl" required/></label><label>COMMAND<input id="command" maxlength="100" value="!power medkit" required/></label><button class="big-cta" type="submit">SEND LOCAL COMMAND <b>↗</b></button></form><button id="resolve-now">RESOLVE CURRENT VOTE</button><span class="form-response" id="lab-response">READY FOR LOCAL INPUT.</span></div>
+</div>
+<script type="module" src="/src/duel.js"></script>
+</body>
+</html>

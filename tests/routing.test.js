@@ -5,9 +5,9 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const read = file => readFile(new URL(file, root), 'utf8');
 
-test('landing route is marketing-only and points to the independent play route', async () => {
+test('landing route is marketing-only and points to the new raid encounter', async () => {
   const html = await read('index.html');
-  assert.match(html, /href="\/play\/"/);
+  assert.match(html, /href="\/duel\/"/);
   assert.match(html, /src="\/src\/landing\.js"/);
   assert.doesNotMatch(html, /src="\/src\/(?:main|engine)\.js"/);
   assert.doesNotMatch(html, /id="patch-options"/);
