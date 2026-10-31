@@ -3,6 +3,7 @@ import { POWERS, SIDE_INFO, AudienceRound, canonicalAudienceUser, parseAudienceC
 import { demoChatEvent } from './demo.js';
 import { BOSS_FORMS, evolveArchitect, bossRuleDynamics } from './boss-evolution.js';
 import { drawEvolvedArchitect } from './boss-art.js';
+import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, disconnectToken, redirectUri } from './twitch.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
@@ -19,7 +20,7 @@ function makeState(){
   return {
     running:false, guided:false, finished:false, elapsed:0, duration:60,
     player:{x:316,y:FLOOR-32, vx:0, health:100, shields:0, invuln:0, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
-    boss:{x:BOSS_X,y:BOSS_Y,maxHealth:360,health:360,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
+    boss:{x:BOSS_X,y:BOSS_Y,maxHealth:460,health:460,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
     attacks:[], refractions:[], particles:[], ambient:[], nextAttack:1.3,
     activePatch:null, patchEnds:0, modifiers:{}, weapon:'reflect', weaponUntil:0, shockNext:2, combo:0, reflects:0, points:0,
     hudText:'MAKE YOUR FIRST MOVE', hudSmall:'WAIT FOR A TELEGRAPH. REFLECT AT THE LAST SECOND.',
@@ -72,6 +73,7 @@ function acceptChatVote(evt,origin='local'){
   return {ok:true,message:(origin==='twitch'?'TWITCH VOTE':'LOCAL TEST ACCEPTED')+' · '+p.id.toUpperCase()};
 }
 function castLocalVote(name,command){
+  if(actualLive)return {ok:false,message:'OFFLINE TEST VOTING IS DISABLED WHILE TWITCH IS LIVE'};
   return acceptChatVote(demoChatEvent(name,command,++counter),'local');
 }
 function resolveVote(){
@@ -106,7 +108,7 @@ function resolveVote(){
       state.nextAttack=Math.min(state.nextAttack,state.elapsed+.62);
     }
   }else displayFeed('SYSTEM / OFFLINE','NO VOTES — BOSS KEEPS ITS CURRENT FORM');
-  round=new AudienceRound(ROUND_MS);
+  round=new AudienceRound(state.guided?8000:actualLive?20000:ROUND_MS);
   updateVoteUI();
 }
 
@@ -143,20 +145,23 @@ function buildEffectButtons(){
   updateVoteUI();
 }
 const demoVotes=[
-  {t:.5,name:'guardian_fox',command:'!power shield'},
-  {t:1,name:'mercy_main',command:'!power shield'},
-  {t:12.4,name:'chaoswitch',command:'!power armor'},
-  {t:12.9,name:'raid_boss',command:'!power armor'},
-  {t:24.6,name:'night_shift',command:'!power squeeze'},
-  {t:25.0,name:'pixel_fiend',command:'!power squeeze'},
-  {t:36.8,name:'orbitwitch',command:'!patch meteor+moon'},
-  {t:37.3,name:'void_runner',command:'!patch moon+meteor'},
-  {t:48.5,name:'clockbreaker',command:'!power timecut'},
-  {t:49.1,name:'troll_9000',command:'!power timecut'},
+  {t:.5,name:'guardian_fox',command:'!power lance'},
+  {t:1,name:'mercy_main',command:'!power lance'},
+  {t:8.4,name:'chaoswitch',command:'!power armor'},
+  {t:8.9,name:'raid_boss',command:'!power armor'},
+  {t:16.5,name:'night_shift',command:'!power squeeze'},
+  {t:17,name:'pixel_fiend',command:'!power squeeze'},
+  {t:24.6,name:'orbitwitch',command:'!patch meteor+moon'},
+  {t:25.1,name:'void_runner',command:'!patch moon+meteor'},
+  {t:32.5,name:'clockbreaker',command:'!power timecut'},
+  {t:33.0,name:'troll_9000',command:'!power timecut'},
+  {t:40.5,name:'medic_01',command:'!power medkit'},
+  {t:41.0,name:'modteam',command:'!power medkit'}
 ];
 function start(guided){
+  if(guided&&actualLive){displayFeed('SYSTEM','DISCONNECT TWITCH BEFORE RUNNING AN OFFLINE SHOWCASE');return;}
   state=makeState();state.guided=!!guided;state.running=true;
-  keys.clear();round=new AudienceRound(ROUND_MS);
+  keys.clear();round=new AudienceRound(guided?8000:actualLive?20000:ROUND_MS);
   $('start-screen').classList.add('hidden');
   $('result-screen').classList.add('hidden');
   $('feed').replaceChildren();$('next-effect').textContent='AWAITING CHAT';
@@ -206,7 +211,7 @@ function spawnAttack(){
 function parry(){
   const p=state.player;
   if(!state.running||p.parryCooldown>0)return;
-  p.parryCooldown=state.weapon==='cannon'&&state.elapsed<state.weaponUntil?.48:.36;p.parryFlash=.27;
+  p.parryCooldown=state.weapon==='cannon'&&state.elapsed<state.weaponUntil ? .48 : .36; p.parryFlash=.27;
   const reach=state.weapon==='lance'&&state.elapsed<state.weaponUntil?163:104;
   const viable=state.attacks.filter(a=>a.state==='falling'&&Math.abs(a.x-p.x)<reach&&Math.abs(a.y-p.y)<(reach>110?168:120)).sort((a,b)=>Math.abs(a.y-p.y)-Math.abs(b.y-p.y));
   if(viable.length){
@@ -325,9 +330,9 @@ function updateUI(){
   $('perk-ribbon').textContent=['SHIELDS '+(state.player.shields||0),...Object.keys(state.modifiers||{}).filter(k=>hasPower(state,k)).map(k=>k.toUpperCase()),...(state.weapon!=='reflect'?['WEAPON '+state.weapon.toUpperCase()]:[])].join(' · ');
   $('combat-label').querySelector('small').textContent=state.hudSmall;
   $('combat-label').querySelector('strong').textContent=state.hudText;
-  const remain=state.running?round.remaining():Math.ceil(ROUND_MS/1000);
+  const remain=state.running?round.remaining():Math.ceil(round.durationMs/1000);
   $('vote-time').innerHTML=String(remain).padStart(2,'0')+'<span>S</span>';
-  $('vote-progress').style.width=clamp(100*(1-remain/(ROUND_MS/1000)),0,100)+'%';
+  $('vote-progress').style.width=clamp(100*(1-remain/(round.durationMs/1000)),0,100)+'%';
 }
 function drawBackground(time){
   const g=ctx.createLinearGradient(0,0,W,H);
@@ -519,7 +524,38 @@ $('lab-form').addEventListener('submit',e=>{
   $('lab-response').textContent=r.message;
 });
 $('resolve-now').addEventListener('click',()=>{if(state.running)resolveVote();$('lab-response').textContent='VOTE RESOLVED / LOCAL SIMULATION';});
+const twitch=new TwitchChat({
+  onStatus:({state:connection,detail})=>{
+    actualLive=connection==='live';
+    $('connection-state').classList.toggle('live',actualLive);
+    $('connection-state').classList.toggle('connecting',connection==='connecting');
+    $('connection-text').textContent=actualLive?'TWITCH / AUTHENTICATED':connection==='connecting'?'TWITCH / CONNECTING':'OFFLINE / SIMULATED';
+    $('twitch-connect').textContent=actualLive?'TWITCH CONNECTED ✓':'CONNECT TWITCH ↗';
+    $('show-btn').disabled=actualLive;
+    $('auto-chaos').disabled=actualLive;
+    document.querySelectorAll('.effect-grid button').forEach(b=>b.disabled=actualLive);
+    if(detail)displayFeed('TWITCH / '+connection.toUpperCase(),detail,actualLive?'good':'normal');
+  },
+  onMessage:event=>{if(actualLive)acceptChatVote(event,'twitch');}
+});
+$('twitch-connect').addEventListener('click',()=>{
+  $('twitch-modal').classList.remove('hidden');
+  $('twitch-callback').textContent=redirectUri('/duel/');
+  $('twitch-client-id').value=getClientId();
+  $('twitch-feedback').textContent='';
+});
+$('twitch-close').addEventListener('click',()=>$('twitch-modal').classList.add('hidden'));
+$('twitch-modal').addEventListener('click',event=>{if(event.target===$('twitch-modal'))$('twitch-modal').classList.add('hidden')});
+$('twitch-form').addEventListener('submit',event=>{
+  event.preventDefault();
+  try{beginOAuth($('twitch-client-id').value.trim(),'/duel/');}
+  catch(error){$('twitch-feedback').textContent=error.message;}
+});
+$('twitch-disconnect').addEventListener('click',()=>{twitch.stop();disconnectToken();$('twitch-modal').classList.add('hidden');});
+const oauth=consumeOAuthCallback();
+if(oauth?.error)displayFeed('TWITCH / AUTH ERROR',oauth.error,'hot');
+else if(getClientId()&&getToken())twitch.start(getToken(),getClientId());
 buildEffectButtons();
-displayFeed('SYSTEM / OFFLINE','THIS IS A PROTOTYPE. TWITCH AUTHENTICATION IS NOT CONNECTED.');
+displayFeed('SYSTEM / OFFLINE','Twitch chat is available after explicit OAuth and a confirmed EventSub subscription. Offline demo is separate.');
 updateUI();
 requestAnimationFrame(frame);
