@@ -211,6 +211,27 @@ export function drawCodexMonster(ctx,boss,time=0){
   ctx.restore();
  }
  faceAndHelmet(ctx,c,stage,t,form);
+ if((boss.maxHealth||0)>460){
+   // Chat's armor vote grows *actual visible plates* over the execution chassis.
+   for(let side of [-1,1]){
+     ctx.save();ctx.scale(side,1);
+     poly(ctx,[[55,-44],[95,-68],[110,-27],[79,3],[50,-11]],'#202b39',c.light,4);
+     poly(ctx,[[69,-35],[92,-48],[98,-24],[81,-10]],c.outer,c.core,1.4);
+     ctx.restore();
+   }
+   poly(ctx,[[-36,28],[0,12],[37,29],[45,68],[0,89],[-44,68]],'#171f30',c.light,2.8);
+   ctx.save();ctx.globalAlpha=.5;line(ctx,[[-22,50],[0,43],[21,50]],c.core,2);ctx.restore();
+ }
+ if(boss.frenzied){
+   // Haste is visible as erratic live circuitry, not just faster hitboxes.
+   for(let k=0;k<10;k++){
+     const angle=k*TAU/10+Math.sin(t*4+k)*.24;
+     const radius=91+(k%2)*49;
+     const x=Math.cos(angle)*radius,y=Math.sin(angle)*radius*.8;
+     const end=[x+Math.cos(angle)*18,y+Math.sin(angle)*18];
+     line(ctx,[[x,y],[x+Math.sin(t*18+k)*7,y-15],[...end]],k%2?c.core:'#f4ffff',2.5);
+   }
+ }
  heart(ctx,boss,c,t);
  ornaments(ctx,boss,c,t);
  // "Execution failed" moment: a readable, concentric burst when chat evolves it.
