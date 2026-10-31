@@ -189,21 +189,26 @@ function sparks(x,y,color,count=1){
 }
 function spawnAttack(){
   const effects=new Set(state.activePatch?.effects||[]);
-  const d=bossRuleDynamics(state.boss.aspects);
-  const player=state.player;
-  const pattern=effects.has('meteor')?'meteor':effects.has('blackout')?'veil':effects.has('reverse')?'spike':effects.has('hyper')?'bolt':'orb';
-  const target=clamp(player.x+random(-95,95),100,925);
+  const p=state.player;
+  const form=state.boss.form;
+  const pattern=effects.has('meteor')||form==='CATACLYSM'?'meteor':effects.has('blackout')||form==='ECLIPSE'?'veil':effects.has('reverse')||form==='SINGULARITY'?'spike':effects.has('hyper')?'bolt':'orb';
   const speed=(effects.has('moon')?340:425)*(effects.has('hyper')?1.3:1)*(1+state.boss.evolution*.08);
-  state.attacks.push({x:target,y:122,t:0,windup:random(.52,.87),speed,kind:pattern,r:effects.has('magnet')?29:25,state:'warning',name:state.history.at(-1)?.authors?.[0]||'THE CROWD',reflected:false});
-  state.nextAttack=state.elapsed+Math.max(1.2,2.65-(state.boss.evolution*.31));
+  const count=hasPower(state,'crossfire')?2:1;
+  for(let k=0;k<count;k++){
+    const target=clamp(p.x+random(-90,90)+(k?random(190,300)*(Math.random()<.5?-1:1):0),110,925);
+    state.attacks.push({x:target,y:122,t:0,windup:random(.75,1.12),speed,kind:pattern,r:effects.has('magnet')?29:25,state:'warning',name:state.history.at(-1)?.authors?.[0]||'THE CROWD',reflected:false});
+  }
+  state.nextAttack=state.elapsed+Math.max(1.2,2.65-(state.boss.evolution*.31))*(hasPower(state,'frenzy')?.62:1);
   state.hudText=pattern==='meteor'?'FALLING STAR':pattern==='veil'?'ECLIPSE BREACH':pattern==='spike'?'GRAVITY LANCE':pattern==='bolt'?'HYPER STRIKE':'INCOMING ATTACK';
   state.hudSmall='READ THE RED TELEGRAPH. THEN REFLECT.';
 }
+
 function parry(){
   const p=state.player;
   if(!state.running||p.parryCooldown>0)return;
-  p.parryCooldown=.36;p.parryFlash=.27;
-  const viable=state.attacks.filter(a=>a.state==='falling'&&Math.abs(a.x-p.x)<104&&Math.abs(a.y-p.y)<120).sort((a,b)=>Math.abs(a.y-p.y)-Math.abs(b.y-p.y));
+  p.parryCooldown=state.weapon==='cannon'&&state.elapsed<state.weaponUntil?.48:.36;p.parryFlash=.27;
+  const reach=state.weapon==='lance'&&state.elapsed<state.weaponUntil?163:104;
+  const viable=state.attacks.filter(a=>a.state==='falling'&&Math.abs(a.x-p.x)<reach&&Math.abs(a.y-p.y)<(reach>110?168:120)).sort((a,b)=>Math.abs(a.y-p.y)-Math.abs(b.y-p.y));
   if(viable.length){
     const attack=viable[0];
     attack.state='reflected';attack.reflected=true;
@@ -211,7 +216,7 @@ function parry(){
     state.reflects++;state.combo++;state.points+=100+state.combo*30;
     state.hitstop=.09;state.shake=14;state.flashes=.17;
     state.boss.hitFlash=.36;state.boss.weakWindow=1.1;
-    p.health=clamp(p.health+2,0,100);
+    p.health=clamp(p.health+(state.weapon==='vampire'&&state.elapsed<state.weaponUntil?10:2),0,100);
     state.hudText=state.combo>1?'CHAIN '+state.combo+' / REFLECTION':'PERFECT REFLECT';
     state.hudSmall='THEIR WEAPON. YOUR COUNTERATTACK.';
     impact(state.combo>1?'×'+state.combo+' REFLECT':'PERFECT!');
@@ -232,6 +237,7 @@ function dash(){
 }
 function damagePlayer(){
   const p=state.player;if(p.invuln>0||!state.running)return;
+  if((p.shields||0)>0){p.shields--;p.invuln=.8;state.shake=9;state.hudText='SHIELD SAVED YOU';impact('AEGIS BLOCK');displayFeed('DEFENSE','AUDIENCE SHIELD ABSORBED AN ATTACK','good');return;}
   p.health=Math.max(0,p.health-17);p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
   state.hudText='DIRECT HIT';state.hudSmall='THE AUDIENCE LANDED THEIR ATTACK.';
   impact('DIRECT HIT','pink');
@@ -258,12 +264,19 @@ function update(dt){
       if(next.state==='falling'&&Math.abs(next.x-p.x)<90&&Math.abs(next.y-p.y)<107&&p.parryCooldown<=0)parry();
     }else p.vx+=(0-p.vx)*dt*6;
   }else{
-    const input=(keys.has('right')?1:0)-(keys.has('left')?1:0);
-    p.vx+=(input*410-p.vx)*Math.min(1,dt*15);
+    let input=(keys.has('right')?1:0)-(keys.has('left')?1:0);
+    if(hasPower(state,'reverse'))input*=-1;
+    const speed=hasPower(state,'shackle')?250:410;
+    p.vx+=(input*speed-p.vx)*Math.min(1,dt*15);
   }
   if(Math.abs(p.dash)>.005){p.x+=Math.sign(p.dash)*920*dt;p.dash-=Math.sign(p.dash)*dt;}
-  p.x=clamp(p.x+p.vx*dt,88,940);
+  p.x=clamp(p.x+p.vx*dt,hasPower(state,'squeeze')?185:88,hasPower(state,'squeeze')?835:940);
   if(state.activePatch&&state.elapsed>=state.patchEnds)state.activePatch=null;
+  if(state.weaponUntil<=state.elapsed)state.weapon='reflect';
+  if(hasPower(state,'shock')&&state.elapsed>=state.shockNext){
+    state.shockNext=state.elapsed+2.4;
+    if(p.x>420&&p.x<630)damagePlayer();
+  }
   if(Date.now()>=round.endsAt)resolveVote();
   if(state.elapsed>=state.nextAttack)spawnAttack();
   for(const a of state.attacks){
@@ -285,7 +298,7 @@ function update(dt){
     bolt.y=bolt.originY+(b.y-bolt.originY)*t*(2-t);
     if(t>=1&&!bolt.hit){
       bolt.hit=true;
-      const power=14+Math.min(9,state.combo*2)+(b.weakWindow>0?5:0);
+      const power=14+Math.min(9,state.combo*2)+(b.weakWindow>0?5:0)+(state.weapon==='cannon'&&state.elapsed<state.weaponUntil?14:0);
       b.health=Math.max(0,b.health-power);
       b.hitFlash=.32;b.morphPulse=.3;state.shake=12;
       for(let i=0;i<32;i++)sparks(b.x,b.y,'#eaff6e');
@@ -299,7 +312,8 @@ function update(dt){
   updateUI();
 }
 function updateUI(){
-  $('game-clock').textContent='00:'+String(Math.ceil(Math.max(0,60-state.elapsed))).padStart(2,'0');
+  const timeLeft=Math.ceil(Math.max(0,state.duration-state.elapsed));
+  $('game-clock').textContent=String(Math.floor(timeLeft/60)).padStart(2,'0')+':'+String(timeLeft%60).padStart(2,'0');
   const phase=state.boss.evolution+1;
   $('round-indicator').textContent=state.guided?'GUIDED / OFFLINE':'CHAPTER '+['I','II','III','IV'][Math.min(3,phase-1)]+' — '+(state.boss.form==='PRIME'?'FIRST STRIKE':state.boss.form);
   $('boss-name').textContent=BOSS_FORMS[state.boss.form]?.name||'THE ARCHITECT';
@@ -307,7 +321,8 @@ function updateUI(){
   $('boss-bar-fill').style.width=100*state.boss.health/state.boss.maxHealth+'%';
   $('health-number').textContent=Math.ceil(state.player.health);
   $('health-fill').style.width=state.player.health+'%';
-  $('combo-info').textContent=state.combo+' × REFLECT CHAIN';
+  $('combo-info').textContent=state.combo+' × REFLECT · '+(state.weapon==='reflect'?'STANDARD':state.weapon.toUpperCase());
+  $('perk-ribbon').textContent=['SHIELDS '+(state.player.shields||0),...Object.keys(state.modifiers||{}).filter(k=>hasPower(state,k)).map(k=>k.toUpperCase()),...(state.weapon!=='reflect'?['WEAPON '+state.weapon.toUpperCase()]:[])].join(' · ');
   $('combat-label').querySelector('small').textContent=state.hudSmall;
   $('combat-label').querySelector('strong').textContent=state.hudText;
   const remain=state.running?round.remaining():Math.ceil(ROUND_MS/1000);
@@ -345,6 +360,16 @@ function drawBackground(time){
   floor.addColorStop(0,'#323341');floor.addColorStop(.14,'#181923');floor.addColorStop(1,'#080a12');
   ctx.fillStyle=floor;ctx.fillRect(0,FLOOR+2,W,114);
   ctx.fillStyle='#eaff68';ctx.fillRect(0,FLOOR-1,W,3);
+  if(hasPower(state,'squeeze')){
+    ctx.save();ctx.fillStyle='rgba(255,95,123,.22)';ctx.strokeStyle='#ff8b9b';ctx.lineWidth=7;
+    ctx.fillRect(0,95,185,FLOOR-95);ctx.fillRect(835,95,W-835,FLOOR-95);
+    ctx.beginPath();ctx.moveTo(185,95);ctx.lineTo(185,FLOOR);ctx.moveTo(835,95);ctx.lineTo(835,FLOOR);ctx.stroke();ctx.restore();
+  }
+  if(hasPower(state,'shock')){
+    ctx.save();ctx.fillStyle='rgba(255,109,158,.19)';ctx.fillRect(420,FLOOR-53,210,53);
+    ctx.strokeStyle='#ff89bd';ctx.lineWidth=3;ctx.strokeRect(420,FLOOR-53,210,53);
+    ctx.font='700 18px "DM Mono",monospace';ctx.fillStyle='#ffc2d7';ctx.fillText('⚡ SHOCK ZONE',432,FLOOR-65);ctx.restore();
+  }
   ctx.fillStyle='rgba(234,255,105,.08)';
   for(let x=0;x<W;x+=65)ctx.fillRect(x+8,FLOOR+26,36,2);
   ctx.fillStyle='rgba(239,234,232,.22)';
@@ -381,6 +406,7 @@ function drawPlayer(time){
   ctx.fillStyle='#0c1214';ctx.fillRect(-9,-16+bounce,5,4);ctx.fillRect(5,-16+bounce,5,4);
   ctx.strokeStyle='#a8a0aa';ctx.lineWidth=4;
   ctx.beginPath();ctx.moveTo(-12,24);ctx.lineTo(-18,40);ctx.moveTo(12,24);ctx.lineTo(18,40);ctx.stroke();
+  if(p.shields>0){ctx.strokeStyle='#bde5ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,-7,52,0,Math.PI*2);ctx.stroke();}
   if(p.parryFlash>0){
     const k=p.parryFlash/.27;
     ctx.strokeStyle='#eaff68';ctx.lineWidth=5*k;ctx.globalAlpha=k;
@@ -444,7 +470,7 @@ function draw(time){
   drawRefractions();
   drawPlayer(time);
   drawParticles();
-  if(state.activePatch?.effects?.includes('blackout')){
+  if(state.activePatch?.effects?.includes('blackout')||hasPower(state,'eclipse')){
     ctx.fillStyle='rgba(4,5,9,.25)';ctx.fillRect(0,0,W,H);
     // Keep the enemy and reflected weapons visible even in darkness.
     drawBoss(time);drawRefractions();drawPlayer(time);
@@ -484,6 +510,8 @@ $('play-btn').addEventListener('click',()=>start(false));
 $('show-btn').addEventListener('click',()=>start(true));
 $('again-btn').addEventListener('click',()=>start(false));
 $('auto-chaos').addEventListener('click',()=>start(true));
+document.querySelectorAll('.power-tab').forEach(b=>b.addEventListener('click',()=>{activeTab=b.dataset.tab;buildEffectButtons();}));
+
 $('chat-lab-toggle').addEventListener('click',()=>{$('lab-drawer').classList.remove('hidden');$('viewer').focus();});
 $('close-lab').addEventListener('click',()=>{$('lab-drawer').classList.add('hidden');canvas.focus();});
 $('lab-form').addEventListener('submit',e=>{
