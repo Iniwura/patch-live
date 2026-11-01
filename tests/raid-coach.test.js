@@ -10,6 +10,8 @@ const example=()=>({
 
 test('real combat gets two shields and a grace window, with scaled but bounded damage',()=>{
  assert.equal(RAID_BALANCE.startingShields,3);
+ assert.equal(RAID_BALANCE.maxShields,4);
+ assert.ok(RAID_BALANCE.maxShields>RAID_BALANCE.startingShields);
  assert.ok(RAID_BALANCE.openingGraceSeconds>=2);
  assert.ok(RAID_BALANCE.hitInvulnerabilitySeconds>=1.25);
  assert.equal(RAID_BALANCE.waveHeal,30);
@@ -47,6 +49,7 @@ test('onboarding, chat commands and coach appear in the game, not the homepage',
  for(const command of ['!power shield','!power medkit','!power armor','!patch meteor+moon'])
    assert.ok(html.includes(command),command);
  assert.match(js,/RAID_BALANCE\.startingShields/);
+ assert.match(js,/state\.player\.shields=Math\.min\(RAID_BALANCE\.maxShields,state\.player\.shields\+1\)/);
  assert.match(js,/projectileDamage\(state\.raid\.wave\)/);
  assert.match(js,/raidCoachHint\(state\)/);
  assert.match(js,/copy-chat-guide/);

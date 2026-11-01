@@ -1,4 +1,5 @@
 import { compilePatch } from './patches.js';
+import { RAID_BALANCE } from './raid-coach.js';
 
 /** No user-supplied code, coordinates, timers, or arbitrary values reach the engine. */
 export const POWERS = Object.freeze([
@@ -84,7 +85,7 @@ export function applyPower(state,id,authors=[]){
   let description=power.description;
   switch(id){
     case'medkit':p.health=Math.min(100,p.health+24);break;
-    case'shield':p.shields=Math.min(2,(p.shields||0)+1);break;
+    case'shield':p.shields=Math.min(RAID_BALANCE.maxShields,(p.shields||0)+1);break;
     case'lance':case'cannon':case'vampire':state.weapon=id;state.weaponUntil=state.elapsed+power.duration;break;
     case'overtime':{const before=state.duration;state.duration=Math.min(300,state.duration+10);description='Clock extended by '+Math.max(0,state.duration-before)+'s';break;}
     case'bossheal':b.health=Math.min(b.maxHealth,b.health+35);break;

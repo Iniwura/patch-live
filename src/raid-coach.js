@@ -4,6 +4,7 @@
  */
 export const RAID_BALANCE=Object.freeze({
   startingShields:3,
+  maxShields:4, // One audience shield can actually help at the start of a run.
   openingGraceSeconds:3,
   hitInvulnerabilitySeconds:1.8,
   waveHeal:30,
