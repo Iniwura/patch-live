@@ -29,14 +29,14 @@ test('glitch and drone deaths score separately and remove enemies',()=>{
  assert.equal(r.enemies.length,0);assert.equal(r.kills,2);
  assert.equal(r.score,220);
 });
-test('breach clears at six kills then sentinel must be defeated',()=>{
+test('breach clears at twelve kills then sentinel must be defeated',()=>{
  const r=createCampaign();
- for(let i=0;i<6;i++){const mob=spawnRaidEnemy(r,'glitch',100+i*100);applyRaidHit(r,mob.id,60);}
+ for(let i=0;i<12;i++){const mob=spawnRaidEnemy(r,'glitch',100+i*100);applyRaidHit(r,mob.id,60);}
  assert.equal(canAdvanceCampaign(r),true);
- nextRaidWave(r);assert.equal(r.wave,1);assert.equal(r.guardian.hp,170);
+ nextRaidWave(r);assert.equal(r.wave,1);assert.equal(r.guardian.hp,300);
  r.transition=0;
  assert.equal(canAdvanceCampaign(r),false);
- for(let i=0;i<4;i++)applyRaidHit(r,'sentinel',50);
+ for(let i=0;i<6;i++)applyRaidHit(r,'sentinel',50);
  assert.equal(canAdvanceCampaign(r),true);
  nextRaidWave(r);assert.equal(r.wave,2);
  assert.equal(r.guardian,null);
