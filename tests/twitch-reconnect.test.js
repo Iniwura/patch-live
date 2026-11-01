@@ -55,3 +55,33 @@ test('stopping during reconnect closes both sockets', () => {
     assert.equal(next.closed,true);
   }finally{globalThis.WebSocket=previous;}
 });
+
+test('revocation stops the socket and removes the stale session token', () => {
+  const previousSocket = globalThis.WebSocket;
+  const previousStorage = globalThis.sessionStorage;
+  globalThis.WebSocket = MockSocket;
+  const values = new Map([['patchlive_twitch_token','revoked-token']]);
+  globalThis.sessionStorage = {
+    getItem: key => values.get(key) ?? null,
+    removeItem: key => values.delete(key),
+    setItem: (key,value) => values.set(key,String(value))
+  };
+  try {
+    MockSocket.sockets.length = 0;
+    const statuses=[];
+    const chat = new TwitchChat({onStatus: s => statuses.push(s),onMessage:()=>{}});
+    chat.stopped=false;
+    chat.token='revoked-token';
+    chat.connectSocket('wss://eventsub.wss.twitch.tv/ws',false);
+    const socket=MockSocket.sockets[0];
+    socket.emit('revocation',{subscription:{status:'authorization_revoked'}});
+    assert.equal(chat.stopped,true);
+    assert.equal(socket.closed,true);
+    assert.equal(values.has('patchlive_twitch_token'),false);
+    assert.equal(statuses.at(-1).state,'error');
+    assert.match(statuses.at(-1).detail,/authorization_revoked/);
+  } finally {
+    globalThis.WebSocket=previousSocket;
+    globalThis.sessionStorage=previousStorage;
+  }
+});

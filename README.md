@@ -103,4 +103,4 @@ The real foundation and original Architect game were developed in the user's gen
 
 The official rules require a repository, a demo video shorter than three minutes showing the actual project operating **on Twitch** and how Codex was used, a description and the authentic Codex session ID. An offline simulation is not a substitute for the live evidence.
 
-See [CODEX_WORKLOG.md](CODEX_WORKLOG.md), [AUDIENCE_DIRECTOR_RELEASE.md](AUDIENCE_DIRECTOR_RELEASE.md), and [LAST_STAND_EXPERIMENT.md](LAST_STAND_EXPERIMENT.md) for history and constraints.
+See [CODEX_WORKLOG.md](CODEX_WORKLOG.md), [CODEX_FINAL_CLEANUP.md](CODEX_FINAL_CLEANUP.md), [AUDIENCE_DIRECTOR_RELEASE.md](AUDIENCE_DIRECTOR_RELEASE.md), and [LAST_STAND_EXPERIMENT.md](LAST_STAND_EXPERIMENT.md) for history, verification, and constraints.

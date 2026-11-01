@@ -5,6 +5,7 @@ import { BOSS_FORMS, evolveArchitect, bossRuleDynamics } from './boss-evolution.
 import { drawCodexMonster, drawCompilerStage } from './codex-monster.js';
 import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, disconnectToken, redirectUri } from './twitch.js';
 import { RAID_WAVES, createCampaign, tickCampaign, chooseRaidTarget, applyRaidHit, canAdvanceCampaign, nextRaidWave, finishCampaign, rankCampaign } from './raid-campaign.js';
+import { shouldCaptureGameKey } from './input-safety.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
@@ -653,8 +654,7 @@ function inputDown(key){
   else if(key==='dash')dash();
 }
 window.addEventListener('keydown',e=>{
-  const active=document.activeElement;
-  if(active?.tagName==='INPUT')return;
+  if(!shouldCaptureGameKey(document.activeElement))return;
   const k=e.key.toLowerCase();
   const action=(k==='a'||k==='arrowleft')?'left':(k==='d'||k==='arrowright')?'right':(k===' '||k==='j')?'parry':(k==='shift'||k==='k')?'dash':null;
   if(action){e.preventDefault();if(!e.repeat)inputDown(action);}
@@ -665,6 +665,7 @@ window.addEventListener('keyup',e=>{
   if(k==='d'||k==='arrowright')keys.delete('right');
 });
 window.addEventListener('blur',()=>keys.clear());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)keys.clear();});
 for(const b of document.querySelectorAll('[data-key]')){
   b.addEventListener('pointerdown',e=>{e.preventDefault();inputDown(b.dataset.key);b.setPointerCapture(e.pointerId);});
   b.addEventListener('pointerup',()=>keys.delete(b.dataset.key));

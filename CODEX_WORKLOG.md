@@ -63,3 +63,13 @@ Results:
 - Production routes smoke-fetched HTTP 200 at `/` and `/play/`.
 - This extracted checkout does not contain initialized Git metadata or a remote, so no commit or push is claimed here.
 - Run `/status` in this same Codex conversation before Devpost submission to capture the real session ID. This worklog intentionally leaves that value blank rather than inventing one.
+
+## Final cleanup audit — 2026-11-01
+
+- Audited the issue-authoritative Codebreakers release on `fix/codex-submission-cleanup`, not the older Architect checkout.
+- Fixed and regression-tested three confirmed bugs: late `timecut` clock extension, keyboard focus theft/hidden-tab held input, and EventSub revocation leaving stale socket/token state.
+- Re-ran the complete suite: `54/54` passed. `npm run build` and syntax checks for the duel, raid, audience, Twitch, and input-safety modules passed.
+- Local HTTP smoke returned 200 for `/`, `/duel/`, `/play/`, and cleanup assets; `/play` returned 308 to `/play/`.
+- A Codex preview was opened for `/duel/`, but no browser automation or installed browser was available for click-level 320px/390px/desktop QA. No visual pass is claimed.
+- Twitch OAuth/EventSub remains unverified because of developer 2FA. No deployment was performed and no Twitch activity or Codex session ID was fabricated.
+- See `CODEX_FINAL_CLEANUP.md` and `LIVE_EVIDENCE.md` for the detailed handoff.

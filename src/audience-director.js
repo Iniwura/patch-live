@@ -89,7 +89,14 @@ export function applyPower(state,id,authors=[]){
     case'overtime':{const before=state.duration;state.duration=Math.min(300,state.duration+10);description='Clock extended by '+Math.max(0,state.duration-before)+'s';break;}
     case'bossheal':b.health=Math.min(b.maxHealth,b.health+35);break;
     case'armor':{const gain=Math.min(45,500-b.maxHealth);b.maxHealth+=gain;b.health+=gain;break;}
-    case'timecut':state.duration=Math.max(state.elapsed+15,Math.max(25,state.duration-7));break;
+    case'timecut':{
+      const before=state.duration;
+      const floor=Math.max(25,state.elapsed+15);
+      // Preserve the minimum safe runway without ever extending a late raid.
+      state.duration=Math.min(before,Math.max(floor,Math.max(25,before-7)));
+      description='Clock reduced by '+Math.max(0,before-state.duration)+'s';
+      break;
+    }
     case'shock':state.shockNext=state.elapsed+1.7;break;
     case'shuffle':p.x=p.x<490?800:205;p.invuln=Math.max(p.invuln,.5);break;
     case'evolve':{
