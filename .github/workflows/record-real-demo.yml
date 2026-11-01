@@ -1,0 +1,65 @@
+name: Record REAL PATCH gameplay (offline guided, not Twitch)
+
+on:
+  push:
+    branches: ["video/real-screenrecorded-demo"]
+    paths:
+      - ".github/workflows/record-real-demo.yml"
+      - "scripts/record-real-demo.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screen-record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright
+        run: |
+          npm install --no-save --no-package-lock playwright@1.64.1
+          npx playwright install --with-deps chromium
+      - name: Build and run tests
+        run: |
+          npm test
+          npm run build
+      - name: Start real game server
+        run: |
+          node server.mjs dist > /tmp/patch-server.log 2>&1 &
+          for i in $(seq 1 25); do
+            if curl -fsS http://127.0.0.1:4173/duel/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/patch-server.log
+          exit 1
+      - name: Capture actual Chromium gameplay
+        run: node scripts/record-real-demo.mjs
+      - name: Transcode game recording to shareable MP4
+        if: always()
+        run: |
+          if [ -f demo-capture/codebreakers-actual-gameplay.webm ]; then
+            ffmpeg -y -hide_banner -loglevel error \
+              -i demo-capture/codebreakers-actual-gameplay.webm \
+              -vf "fps=30,scale=1920:1080:flags=lanczos,format=yuv420p" \
+              -c:v libx264 -preset fast -crf 23 -movflags +faststart -an \
+              demo-capture/codebreakers-real-gameplay-1080p.mp4
+            ffprobe -v error -show_entries format=duration:stream=width,height,codec_name \
+              -of default=noprint_wrappers=1 demo-capture/codebreakers-real-gameplay-1080p.mp4
+          fi
+      - name: Publish honest screen recording
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PATCH-real-gameplay-not-live-Twitch
+          path: |
+            demo-capture/codebreakers-real-gameplay-1080p.mp4
+            demo-capture/codebreakers-actual-gameplay.webm
+            demo-capture/report.json
+          retention-days: 15
+          if-no-files-found: error
