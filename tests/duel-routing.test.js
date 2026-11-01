@@ -19,7 +19,8 @@ test('viewer-authority is restricted to the existing vote compiler and distinct 
 test('reflected weapons really damage the boss and risk-free actions cannot win',()=>{
   assert.match(source,/a\.state==='falling'/);
   assert.match(source,/Math\.abs\(a\.x-p\.x\)<reach/);
-  assert.match(source,/b\.health=Math\.max\(0,b\.health-power\)/);
+  assert.match(source,/b\.health=Math\.max\(0,b\.health-Math\.max/);
+  assert.match(source,/applyRaidHit\(raid,bolt\.targetId,power\)/);
   assert.match(source,/damagePlayer\(\)/);
 });
 test('simulation is always disclosed on the encounter and can be tested without Twitch',()=>{
