@@ -1,22 +1,22 @@
-# PATCH//LIVE — THE COMPILER
+# PATCH//LIVE — CODEBREAKERS: THE COMPILER RAID
 
-**The audience writes the monster. The streamer breaks the code.**
+**Three waves. One community-authored monster. Fight for the high score.**
 
-PATCH//LIVE is a fast browser raid encounter for Twitch. Viewers can help the streamer, sabotage them, mutate a gigantic original machine-beast, alter the arena, and change the clock. The streamer has one essential skill: **reflect incoming audience-authored weapons into the monster's execution core.**
+PATCH//LIVE is a Twitch-interactive arcade raid for streamers: clear two types of minor enemies, defeat The Sentinel miniboss, then fight The Compiler. Audience members instantly activate bounded powers, while major physics changes are decided by one-person-one-vote rounds. The streamer defeats enemies through actual movement, timed reflections and close-range strikes, earns stage upgrades, and fights for a personal-best score.
 
 Built for the **Codex × TwitchCon Hackathon** (November 2, 2026 deadline). This is an independent project, not an official OpenAI or Twitch game; the illustrated Compiler is original artwork and does not reproduce an OpenAI mascot, logo, or trademark.
 
 ## Launch the experience
 
 - **[Landing page](https://patch-live.vercel.app/)** — cinematic, animated preview of the actual Compiler monster.
-- **[THE COMPILER / LAST STAND](https://patch-live.vercel.app/duel/)** — the audience-directed playable boss encounter.
+- **[CODEBREAKERS / THE COMPILER](https://patch-live.vercel.app/duel/)** — three-stage survival campaign with evolving Twitch-chaos perks.
 - [Original Architect mode](https://patch-live.vercel.app/play/) — preserved legacy three-act game.
 
 The new game is on `/duel/`, and the landing page now opens it directly.
 
 ### What viewers can do
 
-Votes run in bounded rounds; **one counted ballot per Twitch user ID**. A viewer may change their vote before the round closes but cannot increase its weight by spamming.
+Ordinary `!power` effects apply **immediately** after a bounded global/per-person/per-power cooldown. Only physics/evolution `!patch` commands use timed rounds with **one counted ballot per Twitch user ID**; voters can switch their choice without multiplying it. The game never executes arbitrary chat code.
 
 | Command | Examples | Actual consequence |
 |---|---|---|
@@ -35,13 +35,27 @@ The server never executes arbitrary viewer-supplied commands. All chat input is 
 - **Recursive Entity** — orbital fragments, altered gravity and recurring strikes.
 - **Null Devourer** — winged silhouette, darkness and void attacks.
 
-Armor votes build physical metal plates on the body; Frenzy votes electrify its limbs. Every successful return shot damages the boss. The finale credits the last five audience choices with viewer names, instead of only revealing a score.
+Armor votes build physical metal plates on the body; Frenzy votes electrify its limbs. Every successful return shot damages the boss. The finale credits the last five audience choices with viewer names and displays the campaign score, personal best, highest wave, enemies defeated, reflections and grade.
+
+## Three-stage playable campaign
+
+| Stage | Opponents | Objective |
+|---|---|---|
+| 01 — System Breach | Chasing Glitchlings and airborne Packet Drones | Delete 12 minor enemies |
+| 02 — Firewall Uprising | The 300-HP Sentinel, plus drones and glitches | Break the Sentinel's health through reflections |
+| 03 — Final Compilation | THE COMPILER with accumulated audience mutations and supporting enemies | Defeat the Compiler before the raid timer expires |
+
+Score rewards kills, reflection chains, wave clears and the final victory. The browser stores an individual personal best locally. There is no public leaderboard backend or paid monetization integration in this build.
+
+### Creator monetization roadmap (not implemented)
+
+Twitch Channel Points and approved Twitch monetization products could support optional cosmetics or bonus spectacle in a future release. **This build does not collect Bits, payments or donations**, and participation is free. Any paid integrations must respect Twitch's current developer and monetization requirements, creator controls, cooldowns and fair play.
 
 ## Start, play, and test
 
-Use `ENTER THE ARENA` for manual controls: **A/D or arrows** move, **Space/J** reflects, **Shift/K** dashes. On phones, touch controls provide the same actions.
+Use `START THE RAID` for manual controls: **A/D or arrows** move, **Space/J** reflects incoming projectiles or strikes nearby Glitchlings, **Shift/K** dashes. On phones, touch controls provide the same actions. The full raid has a four-minute time limit; clearing Wave 1 and defeating The Sentinel unlock staged equipment and health rewards. Your local personal-best score is saved in browser storage.
 
-Use `WATCH THE CHAOS` for the **explicitly offline** guided demo. Six or more simulated viewers vote through the same bounded parser and progression rules. The encounter demonstrates weapon modification, boss armor, arena shrinkage, physics mutation, clock manipulation and healing. The assisted character still uses actual collision, reflection damage and game win/lose logic.
+Use `WATCH THE CHAOS` for an **explicitly offline** assisted demonstration. Local simulated viewers activate the same bounded instant-power and evolution-voting logic. The guide moves, parries, takes real damage, clears all three waves and wins only after the final boss's actual health reaches zero. It does not simulate a Twitch connection.
 
 You can also use the in-game OFFLINE CHAT LAB to send test `!power` or `!patch` commands without Twitch credentials. Offline messages are always identified as local simulations.
 
@@ -73,7 +87,8 @@ Open `http://localhost:4173/duel/`.
 Code map:
 
 - `src/codex-monster.js` — original procedural boss art, three forms, armored and frenzied overlays, cached architectural stage.
-- `src/duel.js` and `src/duel.css` — the reflect-to-defeat arcade loop, power runtime, HUD, audio and touch controls.
+- `src/duel.js` and `src/duel.css` — three-stage raid orchestration, instant chat powers, reflected projectiles, wave HUD, scoring, audio and touch controls.
+- `src/raid-campaign.js` — independent Glitchlings/Packet Drones, the Sentinel miniboss, wave objectives, target resolution and scoring.
 - `src/audience-director.js` — 18 effects, strict allowlisted parser, normalized Twitch IDs and vote tally.
 - `src/boss-evolution.js` — bounded boss DNA, attack choices and gameplay physics.
 - `src/twitch.js` — OAuth and validated EventSub WebSocket connection.
