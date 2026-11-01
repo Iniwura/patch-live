@@ -9,7 +9,7 @@
 - [x] [Preserved Architect encounter](https://patch-live.vercel.app/play/).
 - [x] [Source repository](https://github.com/Iniwura/patch-live).
 - [x] [YouTube demo](https://youtu.be/-sJFZgrkuJM) — published, browser-accessible.
-- [x] Genuine Codex desktop session ID — captured by the user using `/status` and included in the Devpost submission fields.
+- [x] Genuine Codex desktop session ID — captured by the user using `/status` and supplied as the intended value for the required Devpost field. Exact saved field value was not independently read back from Devpost.
 - [x] Devpost project story, technology explanation and creator/community use cases drafted and supplied for submission.
 - [x] Devpost media package of real-game images prepared. **Not independently confirmed all gallery images were uploaded**.
 
