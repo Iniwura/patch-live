@@ -181,7 +181,7 @@ All code runs in the browser after the static build; the Streamer.bot route depe
 
 | Verification | Status |
 | :--- | :--- |
-| **Node automated tests** | **64 passing** on the last verified main release; rerun `npm test` for the current branch |
+| **Node automated tests** | **65 passing** on the verified release after the Aegis shield regression fix ([PR #13](https://github.com/Iniwura/patch-live/pull/13)); rerun `npm test` for any later revision |
 | **Production build** | Verified `npm run build` on the final UI release |
 | **Browser smoke** | Desktop and phone-size Chromium checks passed for landing/game, controls and Streamer.bot modal |
 | **Campaign** | Actual engine completes three waves, defeats The Compiler and records victory/score in guided testing |

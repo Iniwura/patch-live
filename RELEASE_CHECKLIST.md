@@ -22,7 +22,7 @@
 - [x] Original procedurally animated multi-form Compiler boss.
 - [x] Optional direct Twitch OAuth/EventSub client, **not end-to-end live verified**.
 - [x] Local Streamer.bot transport tested with broadcaster authorization and credited chat command, according to screenshots/user confirmation.
-- [x] Production build, 64 automated tests, responsive Chromium checks in the last verified release.
+- [x] Production build, 65 automated tests including Aegis shield regression, responsive Chromium checks in the verified releases.
 
 ## Evidence limits
 
