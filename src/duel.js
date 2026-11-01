@@ -217,15 +217,22 @@ function finish(won){
   if(state.finished)return;
   state.running=false;state.finished=true;
   state.result=won?'VICTORY':'DEFEAT';
+  const total=finishCampaign(state.raid,state.points+(won?2500:0));
+  let previous=0;
+  try{previous=Number(localStorage.getItem('patchlive_raid_best'))||0;if(total>previous)localStorage.setItem('patchlive_raid_best',String(total));}catch{}
+  $('result-best').textContent=Math.max(previous,total).toLocaleString();
+  $('result-wave').textContent=String(state.raid.highestWave).padStart(2,'0');
+  $('result-kills').textContent=state.raid.kills.toLocaleString();
+  $('result-rank').textContent=rankCampaign(state.raid,won);
   $('result-screen').classList.remove('hidden');
-  $('result-label').textContent=won?'THE AUDIENCE BUILT IT. YOU BEAT IT.':'THE CROWD WINS THIS ROUND';
-  $('result-title').innerHTML=won?'THE MONSTER<br/><em>WAS YOURS.</em>':'THEY<br/><em>BROKE YOU.</em>';
+  $('result-label').textContent=won?'SYSTEM CLEARED · THREE WAVES SURVIVED':'RAID ENDED · TRY AGAIN';
+  $('result-title').innerHTML=won?'CODE<br/><em>BREAKER.</em>':'SYSTEM<br/><em>FAILURE.</em>';
   $('result-description').textContent=won?
-    'You reflected '+state.reflects+' community-authored attacks. Built by '+([...state.authors].slice(0,3).join(', ')||'your community')+'. You turned their weapons against them.':
-    'Every attack was designed by your community. Restart and turn their ideas against them.';
+    'Three waves cleared · '+state.raid.kills+' minor enemies defeated · '+state.reflects+' reflections. Your community built the challenge; you survived it.':
+    'You reached Wave '+state.raid.highestWave+' and defeated '+state.raid.kills+' minor enemies. Run it back and beat your best.';
   $('result-reflects').textContent=state.reflects;
   $('result-authors').textContent=state.authors.size;
-  $('result-score').textContent=state.points;
+  $('result-score').textContent=total.toLocaleString();
   const recap=$('boss-dna-recap');
   recap.replaceChildren();
   for(const decision of state.history.slice(-5)){
@@ -258,6 +265,23 @@ function spawnAttack(){
   state.hudSmall='READ THE RED TELEGRAPH. THEN REFLECT.';
 }
 
+function advanceWave(){
+  if(!canAdvanceCampaign(state.raid))return;
+  const result=nextRaidWave(state.raid);
+  if(!result)return;
+  state.player.health=Math.min(100,state.player.health+16);
+  state.player.shields=Math.min(2,state.player.shields+1);
+  state.weapon=state.raid.wave===1?'lance':'cannon';
+  state.weaponUntil=state.elapsed+14;
+  state.attacks=[];state.refractions=[];
+  state.nextAttack=state.elapsed+2;
+  state.shake=14;state.flashes=.22;
+  state.hudText=result;state.hudSmall='STAGE CLEARED · BONUS HEALTH +16 · EQUIPMENT UPGRADED';
+  impact('WAVE '+(state.raid.wave+1)+'!');
+  displayFeed('CAMPAIGN',result+' · EQUIPMENT UPGRADED','good');
+  sparks(state.player.x,state.player.y,'#eaff68',40);
+  synth(490,.36,'triangle',.08);
+}
 function parry(){
   const p=state.player;
   if(!state.running||p.parryCooldown>0)return;
@@ -267,8 +291,10 @@ function parry(){
   if(viable.length){
     const attack=viable[0];
     attack.state='reflected';attack.reflected=true;
-    state.refractions.push({x:attack.x,y:attack.y,originX:attack.x,originY:attack.y,t:0,duration:.35,hit:false,color:'#edff73'});
-    state.reflects++;state.combo++;state.points+=100+state.combo*30;
+    const target=chooseRaidTarget(state.raid,attack.x);
+    state.refractions.push({x:attack.x,y:attack.y,originX:attack.x,originY:attack.y,t:0,duration:.35,hit:false,color:'#edff73',
+      targetId:state.raid.wave===2&&!target?'compiler':target?.id||'none'});
+    state.reflects++;state.raid.perfectReflections++;state.combo++;state.points+=100+state.combo*30;
     state.hitstop=.09;state.shake=14;state.flashes=.17;
     state.boss.hitFlash=.36;state.boss.weakWindow=1.1;
     p.health=clamp(p.health+(state.weapon==='vampire'&&state.elapsed<state.weaponUntil?10:2),0,100);
@@ -279,8 +305,15 @@ function parry(){
     for(let i=0;i<24;i++)sparks(p.x,p.y,'#eaff6e');
     synth(820,.15,'triangle',.08);
   }else{
-    state.combo=0;state.hudText='TOO EARLY';state.hudSmall='REFLECT WHEN THE ATTACK ENTERS YOUR RANGE.';
-    synth(110,.08,'sawtooth',.02);
+    const mob=state.raid.enemies.find(e=>e.kind==='glitch'&&Math.abs(e.x-p.x)<110);
+    if(mob){
+      const hit=applyRaidHit(state.raid,mob.id,48);
+      if(hit?.killed){state.points+=90;state.combo++;impact('GLITCH DELETED!');sparks(mob.x,mob.y,'#eaff68',20);}
+      if(canAdvanceCampaign(state.raid))advanceWave();
+    }else{
+      state.combo=0;state.hudText='TOO EARLY';state.hudSmall='REFLECT A PROJECTILE OR STRIKE A NEARBY GLITCHLING.';
+      synth(110,.08,'sawtooth',.02);
+    }
   }
 }
 function dash(){
@@ -293,7 +326,7 @@ function dash(){
 function damagePlayer(){
   const p=state.player;if(p.invuln>0||!state.running)return;
   if((p.shields||0)>0){p.shields--;p.invuln=.8;state.shake=9;state.hudText='SHIELD SAVED YOU';impact('AEGIS BLOCK');displayFeed('DEFENSE','AUDIENCE SHIELD ABSORBED AN ATTACK','good');return;}
-  p.health=Math.max(0,p.health-17);p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
+  p.health=Math.max(0,p.health-17);state.raid.hitCount++;p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
   state.hudText='DIRECT HIT';state.hudSmall='THE AUDIENCE LANDED THEIR ATTACK.';
   impact('DIRECT HIT','pink');
   for(let i=0;i<40;i++)sparks(p.x,p.y,'#ff597a');
@@ -334,6 +367,13 @@ function update(dt){
   }
   if(Date.now()>=round.endsAt)resolveVote();
   if(state.elapsed>=state.nextAttack)spawnAttack();
+  const mobEvents=tickCampaign(state.raid,dt,p.x,{guided:state.guided});
+  if(mobEvents.collision)damagePlayer();
+  for(const mobShot of mobEvents.shots)state.attacks.push({
+    x:mobShot.x,y:122,t:0,windup:.95,speed:440+state.raid.wave*35,
+    kind:'bolt',r:25,state:'warning',name:mobShot.name,reflected:false
+  });
+  if(canAdvanceCampaign(state.raid))advanceWave();
   for(const a of state.attacks){
     a.t+=dt;
     if(a.state==='warning'&&a.t>=a.windup){a.state='falling';a.y=145;state.shake=Math.max(2,state.shake);}
@@ -349,21 +389,36 @@ function update(dt){
   for(const bolt of state.refractions){
     bolt.t+=dt;
     const t=clamp(bolt.t/bolt.duration,0,1);
-    bolt.x=bolt.originX+(b.x-bolt.originX)*t;
-    bolt.y=bolt.originY+(b.y-bolt.originY)*t*(2-t);
+    const raid=state.raid;
+    const mob=raid.enemies.find(e=>e.id===bolt.targetId);
+    const target=mob||(bolt.targetId==='sentinel'?raid.guardian:null);
+    const tx=target?.x??b.x,ty=target?.y??b.y;
+    bolt.x=bolt.originX+(tx-bolt.originX)*t;
+    bolt.y=bolt.originY+(ty-bolt.originY)*t*(2-t);
     if(t>=1&&!bolt.hit){
       bolt.hit=true;
-      const power=14+Math.min(9,state.combo*2)+(b.weakWindow>0?5:0)+(state.weapon==='cannon'&&state.elapsed<state.weaponUntil?14:0);
-      b.health=Math.max(0,b.health-power);
-      b.hitFlash=.32;b.morphPulse=.3;state.shake=12;
-      for(let i=0;i<32;i++)sparks(b.x,b.y,'#eaff6e');
-      if(b.health<=0){finish(true);break;}
+      const power=24+Math.min(12,state.combo*2)+(b.weakWindow>0?4:0)+(state.weapon==='cannon'&&state.elapsed<state.weaponUntil?17:0);
+      if(bolt.targetId==='compiler'&&raid.wave===2){
+        b.health=Math.max(0,b.health-power);
+        b.hitFlash=.32;b.morphPulse=.27;state.shake=12;
+        sparks(b.x,b.y,'#eaff6e',30);
+        if(b.health<=0){finish(true);break;}
+      }else if(target){
+        const hit=applyRaidHit(raid,bolt.targetId,power);
+        if(hit?.killed){
+          state.points+=hit.target==='guardian'?500:75;
+          impact(hit.target==='guardian'?'SENTINEL SHATTERED!':'ENEMY DELETED!');
+          displayFeed('RAID / KILL',hit.target.toUpperCase()+' DEFEATED','good');
+        }
+        sparks(tx,ty,'#d5ff8c',25);
+        if(canAdvanceCampaign(raid))advanceWave();
+      }
     }
   }
   state.refractions=state.refractions.filter(v=>!v.hit);
   for(const pt of state.particles){pt.x+=pt.vx*dt;pt.y+=pt.vy*dt;pt.vx*=.98;pt.vy*=.98;pt.life-=dt;}
   state.particles=state.particles.filter(pt=>pt.life>0).slice(-200);
-  if(state.elapsed>=state.duration)finish(b.health<=0);
+  if(state.elapsed>=state.duration)finish(state.raid.wave===2&&b.health<=0);
   updateUI();
 }
 function updateUI(){
