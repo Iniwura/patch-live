@@ -5,7 +5,7 @@ import {RAID_BALANCE,projectileDamage,raidCoachHint} from '../src/raid-coach.js'
 
 const example=()=>({
  running:true,finished:false,
- player:{x:300,health:100},raid:{wave:0,transition:0,enemies:[]},attacks:[]
+ player:{x:300,y:574,health:100},raid:{wave:0,transition:0,enemies:[]},attacks:[]
 });
 
 test('real combat gets two shields and a grace window, with scaled but bounded damage',()=>{
