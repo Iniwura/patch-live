@@ -27,7 +27,7 @@ export function spawnRaidEnemy(raid,kind,x){
  const isDrone=kind==='drone';
  const enemy={id,kind,x,y:isDrone?420:564,baseY:isDrone?420:564,
    hp:isDrone?26:34,maxHp:isDrone?26:34,r:isDrone?27:31,
-   vx:0,clock:0,shotClock:isDrone?2.4:0,alive:true};
+   vx:0,clock:0,contactCooldown:0,shotClock:isDrone?2.4:0,alive:true};
  raid.enemies.push(enemy);return enemy;
 }
 export function nextRaidWave(raid){
@@ -60,14 +60,12 @@ export function tickCampaign(raid,dt,playerX,{guided=false}={}){
   spawnRaidEnemy(raid,raid.serial%3===1?'drone':'glitch',x);
  }
  for(const mob of raid.enemies){
-  mob.clock+=dt;
+  mob.clock+=dt;mob.contactCooldown=Math.max(0,mob.contactCooldown-dt);
   if(mob.kind==='glitch'){
     mob.vx=Math.sign(playerX-mob.x)*(raid.wave+1)*24;
     mob.x=clamp(mob.x+mob.vx*dt,70,1060);
     mob.y=564+Math.sin(mob.clock*8)*4;
-    if(Math.abs(mob.x-playerX)<48){
-      if(mob.clock>1){collision=true;mob.clock=0;}
-    }
+    if(Math.abs(mob.x-playerX)<42&&mob.contactCooldown<=0){collision=true;mob.contactCooldown=4.5;}
   }else{
     mob.x=clamp(mob.x+Math.sin(mob.clock*.9+raid.serial)*dt*36,70,1050);
     mob.y=405+Math.sin(mob.clock*2.7)*29;
