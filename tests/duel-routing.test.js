@@ -21,7 +21,8 @@ test('reflected weapons really damage the boss and risk-free actions cannot win'
   assert.match(source,/Math\.abs\(a\.x-p\.x\)<reach/);
   assert.match(source,/b\.health=Math\.max\(0,b\.health-Math\.max/);
   assert.match(source,/applyRaidHit\(raid,bolt\.targetId,power\)/);
-  assert.match(source,/damagePlayer\(\)/);
+  assert.match(source,/damagePlayer\(projectileDamage\(state\.raid\.wave\)\)/);
+  assert.match(source,/damagePlayer\(RAID_BALANCE\.contactDamage\)/);
 });
 test('simulation is always disclosed on the encounter and can be tested without Twitch',()=>{
   assert.match(html,/OFFLINE \/ SIMULATED/);
