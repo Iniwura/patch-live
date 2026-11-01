@@ -39,6 +39,17 @@ test('streamer help is bounded and grants actual benefits',()=>{
  assert.ok(s.weaponUntil>s.elapsed);
  applyPower(s,'overtime');assert.equal(s.duration,70);
 });
+test('Aegis protects rather than deletes starting shields, with a bounded cap',()=>{
+ const s=world();
+ s.player.shields=3;
+ applyPower(s,'shield');
+ assert.equal(s.player.shields,4,'Viewer power must help even at the beginning of the raid');
+ applyPower(s,'shield');
+ assert.equal(s.player.shields,4,'Effect stays capped');
+ s.player.shields=2;
+ applyPower(s,'shield');
+ assert.equal(s.player.shields,3,'Power restores one shield when below the cap');
+});
 test('boss support and tempo sabotage cannot overflow the game bounds',()=>{
  const s=world();
  applyPower(s,'bossheal');assert.equal(s.boss.health,315);
