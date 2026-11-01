@@ -700,6 +700,22 @@ $('again-btn').addEventListener('click',()=>start(false));
 $('auto-chaos').addEventListener('click',()=>start(true));
 document.querySelectorAll('.power-tab').forEach(b=>b.addEventListener('click',()=>{activeTab=b.dataset.tab;buildEffectButtons();}));
 
+// A one-click guide lets broadcasters paste exact supported commands into their chat.
+$('copy-chat-guide').addEventListener('click',async()=>{
+  const text=['PATCH//LIVE CHAT COMMANDS (during the raid):',
+    '!power shield — block a hit',
+    '!power medkit — restore 24 HP',
+    '!power armor — strengthen the boss',
+    '!patch meteor+moon — vote on a boss mutation',
+    'Powers are instant with cooldowns. Only !patch uses a vote.'].join('\n');
+  const button=$('copy-chat-guide');
+  try{
+    await navigator.clipboard.writeText(text);
+    button.textContent='COPIED — PASTE INTO TWITCH CHAT ✓';
+  }catch{
+    button.textContent='COPY BLOCKED — SELECT COMMANDS ABOVE';
+  }
+});
 $('chat-lab-toggle').addEventListener('click',()=>{$('lab-drawer').classList.remove('hidden');$('viewer').focus();});
 $('close-lab').addEventListener('click',()=>{$('lab-drawer').classList.add('hidden');canvas.focus();});
 $('lab-form').addEventListener('submit',e=>{
