@@ -286,7 +286,7 @@ function advanceWave(){
   state.attacks=[];state.refractions=[];
   state.nextAttack=state.elapsed+2;
   state.shake=14;state.flashes=.22;
-  state.hudText=result;state.hudSmall='STAGE CLEARED · HEALTH +28 · SHIELD +1 · WEAPON UPGRADED';
+  state.hudText=result;state.hudSmall='STAGE CLEARED · HEALTH +30 · SHIELD +1 · WEAPON UPGRADED';
   impact('WAVE '+(state.raid.wave+1)+'!');
   displayFeed('CAMPAIGN',result+' · EQUIPMENT UPGRADED','good');
   sparks(state.player.x,state.player.y,'#eaff68',40);
