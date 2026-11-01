@@ -7,7 +7,7 @@
  * Compilation: defeat THE COMPILER and its remaining minions.
  */
 export const RAID_WAVES=Object.freeze([
- Object.freeze({id:'breach',name:'SYSTEM BREACH',sub:'CLEAR THE INFECTION',goal:6,boss:null,color:'#b5ff85'}),
+ Object.freeze({id:'breach',name:'SYSTEM BREACH',sub:'CLEAR THE INFECTION',goal:12,boss:null,color:'#b5ff85'}),
  Object.freeze({id:'firewall',name:'FIREWALL UPRISING',sub:'BREAK THE SENTINEL',goal:0,boss:'THE SENTINEL',color:'#77caff'}),
  Object.freeze({id:'compiler',name:'FINAL COMPILATION',sub:'DELETE THE COMPILER',goal:0,boss:'THE COMPILER',color:'#ff849a'})
 ]);
@@ -38,7 +38,7 @@ export function nextRaidWave(raid){
  raid.transition=2.1;raid.enemies=[];
  if(raid.wave===1){
    raid.guardian={id:'sentinel',kind:'guardian',x:920,y:340,
-     hp:170,maxHp:170,r:85,hitFlash:0,clock:0,shotClock:2.6};
+     hp:300,maxHp:300,r:85,hitFlash:0,clock:0,shotClock:2.6};
  }else raid.guardian=null;
  raid.score+=350*raid.wave;
  raid.unlocked.push(RAID_WAVES[raid.wave].id);
