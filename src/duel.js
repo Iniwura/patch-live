@@ -424,19 +424,33 @@ function update(dt){
 function updateUI(){
   const timeLeft=Math.ceil(Math.max(0,state.duration-state.elapsed));
   $('game-clock').textContent=String(Math.floor(timeLeft/60)).padStart(2,'0')+':'+String(timeLeft%60).padStart(2,'0');
-  const phase=state.boss.evolution+1;
-  $('round-indicator').textContent=state.guided?'GUIDED / OFFLINE':'CHAPTER '+['I','II','III','IV'][Math.min(3,phase-1)]+' — '+(state.boss.form==='PRIME'?'FIRST STRIKE':state.boss.form);
-  $('boss-name').textContent=({PRIME:'THE COMPILER',CATACLYSM:'STACK OVERFLOW',SINGULARITY:'RECURSIVE ENTITY',ECLIPSE:'NULL DEVOURER'})[state.boss.form]||'THE COMPILER';
-  $('boss-percent').textContent=Math.ceil(state.boss.health)+' / '+state.boss.maxHealth+' HP';
-  $('boss-bar-fill').style.width=100*state.boss.health/state.boss.maxHealth+'%';
+  const raid=state.raid,wave=RAID_WAVES[raid.wave];
+  $('round-indicator').textContent=wave.name+(state.guided?' · OFFLINE GUIDED':'');
+  $('wave-label').textContent=String(raid.wave+1).padStart(2,'0')+' / 03';
+  $('score-value').textContent=String(Math.floor(state.points+raid.score)).padStart(6,'0');
+  if(raid.wave===0){
+    $('boss-name').textContent='BREACH / DELETE HOSTILES';
+    $('boss-percent').textContent=raid.waveKills+' / '+wave.goal+' ENEMIES';
+    $('boss-bar-fill').style.width=100*Math.min(1,raid.waveKills/wave.goal)+'%';
+  }else if(raid.wave===1){
+    $('boss-name').textContent='THE SENTINEL / FIREWALL';
+    $('boss-percent').textContent=Math.ceil(raid.guardian?.hp||0)+' / 170 HP';
+    $('boss-bar-fill').style.width=100*Math.max(0,(raid.guardian?.hp||0)/170)+'%';
+  }else{
+    $('boss-name').textContent=({PRIME:'THE COMPILER',CATACLYSM:'STACK OVERFLOW',SINGULARITY:'RECURSIVE ENTITY',ECLIPSE:'NULL DEVOURER'})[state.boss.form]||'THE COMPILER';
+    $('boss-percent').textContent=Math.ceil(state.boss.health)+' / '+state.boss.maxHealth+' HP';
+    $('boss-bar-fill').style.width=100*state.boss.health/state.boss.maxHealth+'%';
+  }
   $('health-number').textContent=Math.ceil(state.player.health);
   $('health-fill').style.width=state.player.health+'%';
   $('combo-info').textContent=state.combo+' × REFLECT · '+(state.weapon==='reflect'?'STANDARD':state.weapon.toUpperCase());
-  $('perk-ribbon').textContent=['SHIELDS '+(state.player.shields||0),...Object.keys(state.modifiers||{}).filter(k=>hasPower(state,k)).map(k=>k.toUpperCase()),...(state.weapon!=='reflect'?['WEAPON '+state.weapon.toUpperCase()]:[])].join(' · ');
-  $('combat-label').querySelector('small').textContent=state.hudSmall;
-  $('combat-label').querySelector('strong').textContent=state.hudText;
+  $('perk-ribbon').textContent=['SHIELDS '+(state.player.shields||0),'KILLS '+raid.kills,
+    ...Object.keys(state.modifiers||{}).filter(k=>hasPower(state,k)).map(k=>k.toUpperCase()),
+    ...(state.weapon!=='reflect'?['WEAPON '+state.weapon.toUpperCase()]:[])].join(' · ');
+  $('combat-label').querySelector('small').textContent=raid.transition>0?wave.sub:state.hudSmall;
+  $('combat-label').querySelector('strong').textContent=raid.transition>0?'WAVE '+(raid.wave+1)+' // '+wave.name:state.hudText;
   const remain=state.running?round.remaining():Math.ceil(round.durationMs/1000);
-  $('vote-time').innerHTML=String(remain).padStart(2,'0')+'<span>S</span>';
+  $('vote-time').textContent=String(remain).padStart(2,'0')+'S';
   $('vote-progress').style.width=clamp(100*(1-remain/(round.durationMs/1000)),0,100)+'%';
 }
 function drawBackground(time){
@@ -467,6 +481,7 @@ function drawBackground(time){
  }
 }
 function drawBoss(time){
+ if(state.raid.wave!==2)return;
  const b=state.boss;ctx.save();
  b.frenzied=hasPower(state,'frenzy');
  if(b.morphPulse>0)ctx.translate(random(-b.morphPulse*4,b.morphPulse*4),random(-b.morphPulse*4,b.morphPulse*4));
@@ -474,6 +489,53 @@ function drawBoss(time){
  drawCodexMonster(ctx,b,time);ctx.restore();
  if(b.hitFlash>0){ctx.save();ctx.globalAlpha=b.hitFlash*.7;ctx.strokeStyle='#dfff83';ctx.lineWidth=5;
  ctx.beginPath();ctx.arc(b.x,b.y,155+(1-b.hitFlash)*55,0,Math.PI*2);ctx.stroke();ctx.restore();}
+}
+function drawRaidEnemies(time){
+ const raid=state.raid;
+ for(const e of raid.enemies){
+  ctx.save();ctx.translate(e.x,e.y);
+  const blink=e.hitFlash>0;
+  if(e.kind==='glitch'){
+    const step=Math.sin(time*14+e.x*.02)*7;
+    ctx.shadowColor='#bbff87';ctx.shadowBlur=blink?23:10;
+    ctx.strokeStyle=blink?'#fffcd7':'#b7ff8b';ctx.lineWidth=3;
+    ctx.fillStyle='#1c3030';
+    ctx.beginPath();ctx.moveTo(-26,-29);ctx.lineTo(19,-30);ctx.lineTo(31,-12);ctx.lineTo(24,26);ctx.lineTo(-25,28);ctx.lineTo(-34,2);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#b7ff8b';ctx.fillRect(-19,-10,12,7);ctx.fillRect(8,-10,11,7);
+    ctx.fillStyle='#0b1514';ctx.fillRect(-13,-8,5,4);ctx.fillRect(13,-8,4,4);
+    ctx.strokeStyle='#7addb2';ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(-15,26);ctx.lineTo(-19,40+step);ctx.moveTo(17,26);ctx.lineTo(20,40-step);ctx.stroke();
+  }else{
+    const halo=ctx.createRadialGradient(0,0,2,0,0,65);halo.addColorStop(0,'#81dafa75');halo.addColorStop(1,'#81dafa00');
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(0,0,65,0,Math.PI*2);ctx.fill();
+    ctx.rotate(Math.sin(time*2)*.12);ctx.fillStyle='#1c2d4a';ctx.strokeStyle=blink?'#fff':'#a3ddff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(0,-33);ctx.lineTo(29,-10);ctx.lineTo(22,22);ctx.lineTo(0,33);ctx.lineTo(-23,21);ctx.lineTo(-29,-11);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#80ddff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.ellipse(0,0,42,13,time*1.2,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#b4f7ff';ctx.fillRect(-9,-6,18,12);
+  }
+  ctx.shadowBlur=0;ctx.textAlign='center';ctx.font='700 10px "DM Mono",monospace';ctx.fillStyle='#f4f8ee';
+  ctx.fillText(e.kind==='glitch'?'GLITCHLING':'PACKET DRONE',0,-46);
+  ctx.fillStyle='#161f2d';ctx.fillRect(-26,-40,52,3);
+  ctx.fillStyle=e.kind==='glitch'?'#b5ff86':'#7fcfff';ctx.fillRect(-26,-40,52*e.hp/e.maxHp,3);
+  ctx.restore();
+ }
+ const g=raid.guardian;
+ if(g&&g.hp>0){
+  ctx.save();ctx.translate(g.x,g.y);
+  ctx.shadowColor='#76bafa';ctx.shadowBlur=35;
+  ctx.strokeStyle='#7cc9ff';ctx.lineWidth=5;ctx.fillStyle='#17273f';
+  ctx.beginPath();ctx.moveTo(-64,-56);ctx.lineTo(0,-99);ctx.lineTo(62,-55);ctx.lineTo(71,38);ctx.lineTo(0,96);ctx.lineTo(-73,38);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#8fd8ff';ctx.fillRect(-35,-26,70,15);
+  ctx.fillStyle='#111a2a';ctx.fillRect(-18,-23,13,9);ctx.fillRect(12,-23,13,9);
+  for(let side of [-1,1]){ctx.save();ctx.scale(side,1);ctx.strokeStyle='#8bdcff';ctx.lineWidth=10;
+    ctx.beginPath();ctx.moveTo(58,-12);ctx.lineTo(111,-57+Math.sin(time*2)*14);ctx.lineTo(144,-5);ctx.stroke();
+    ctx.restore();}
+  ctx.fillStyle='#e9faff';ctx.textAlign='center';ctx.font='800 13px "DM Mono",monospace';
+  ctx.fillText('THE SENTINEL',0,-116);
+  ctx.restore();
+ }
 }
 function drawPlayer(time){
   const p=state.player;
@@ -566,6 +628,7 @@ function draw(time){
   if(state.shake>0)ctx.translate(random(-state.shake,state.shake),random(-state.shake*.65,state.shake*.65));
   drawBackground(time);
   drawBoss(time);
+  drawRaidEnemies(time);
   drawAttacks(time);
   drawRefractions();
   drawPlayer(time);
@@ -573,7 +636,7 @@ function draw(time){
   if(state.activePatch?.effects?.includes('blackout')||hasPower(state,'eclipse')){
     ctx.fillStyle='rgba(4,5,9,.25)';ctx.fillRect(0,0,W,H);
     // Keep the enemy and reflected weapons visible even in darkness.
-    drawBoss(time);drawRefractions();drawPlayer(time);
+    drawBoss(time);drawRaidEnemies(time);drawRefractions();drawPlayer(time);
   }
   if(state.flashes>0){ctx.fillStyle='rgba(255,241,187,'+(state.flashes*.22)+')';ctx.fillRect(0,0,W,H);}
   ctx.restore();
