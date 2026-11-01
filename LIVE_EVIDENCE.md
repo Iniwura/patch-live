@@ -33,3 +33,19 @@ Updated 2026-11-01 for the Codex final-cleanup branch.
 - Existing production URLs remain https://patch-live.vercel.app/duel/ and https://patch-live.vercel.app/play/; this branch was not deployed.
 - No Vercel deployment or production promotion was performed by this cleanup.
 - Codex session ID: not available through the tool/API surface used for this run; no value is fabricated. Retrieve the authentic value with `/status` in the primary Codex conversation before submission.
+
+## Optional Streamer.bot local fallback (2026-11-01)
+
+The original Twitch developer application registration was blocked by 2FA. The user requested an alternative before the submission deadline. A **read-only optional Streamer.bot local WebSocket route** was added to the Codebreakers connection modal on `fix/streamerbot-local-bridge`.
+
+- Local endpoint: `ws://127.0.0.1:8080/` (fixed, no arbitrary remote host).
+- Requests only `Subscribe` with `Twitch: ["ChatMessage"]`.
+- Maps numeric Twitch chatter IDs, display names, message text, and message IDs to the existing strict `!power` / `!patch` command path.
+- Ignores events marked `isTest: true`, anonymous/malformed chat, unsupported event sources, duplicated message IDs and malformed commands.
+- Reports **LOCAL BRIDGE / WAITING FOR CHAT** after a successful local event subscription; reports **TWITCH CHAT RECEIVED** only when a non-test chat event arrives through the user's local Streamer.bot instance.
+- No credentials or network secrets are persisted or transmitted to PATCH by this integration. Streamer.bot itself handles the broadcaster's Twitch OAuth.
+- The WebSocket listener should remain bound to localhost. Enforced WebSocket passwords are currently not implemented; the UI reports an error rather than bypassing authentication.
+- `npm test` passed **57/57** tests on the branch; `npm run build` succeeded.
+- A Chromium browser mock tested the HTML connect flow, subscription request, test-event filtering, allowed chat event and in-game power at 320px, 390px and 1440px with no JavaScript errors or horizontal overflow.
+- **Twitch authorization remains unverified.** The browser mock used synthetic messages to exercise the integration, and is not Twitch evidence. Only an actual broadcaster-authenticated Streamer.bot instance and a real Twitch chat message can complete that check. The user must film real Twitch chat and gameplay before claiming hackathon compliance.
+
