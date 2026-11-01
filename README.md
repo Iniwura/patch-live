@@ -1,126 +1,225 @@
-# PATCH//LIVE — CODEBREAKERS: THE COMPILER RAID
+<div align="center">
 
-**Three waves. One community-authored monster. Fight for the high score.**
+# PATCH//LIVE
+### CODEBREAKERS — THE COMPILER RAID
 
-PATCH//LIVE is a Twitch-interactive arcade raid for streamers: clear two types of minor enemies, defeat The Sentinel miniboss, then fight The Compiler. Audience members instantly activate bounded powers, while major physics changes are decided by one-person-one-vote rounds. The streamer defeats enemies through actual movement, timed reflections and close-range strikes, earns stage upgrades, and fights for a personal-best score.
+**Your chat builds the boss. You have to survive it.**
 
-Built for the **Codex × TwitchCon Hackathon** (November 2, 2026 deadline). This is an independent project, not an official OpenAI or Twitch game; the illustrated Compiler is original artwork and does not reproduce an OpenAI mascot, logo, or trademark.
+A three-wave, Twitch-interactive arcade raid where viewers can save the streamer, sabotage the fight, and vote on how the final boss evolves.
 
-## Launch the experience
+[**Play the game ↗**](https://patch-live.vercel.app/duel/) · [**Watch the 89-second demo ↗**](https://youtu.be/-sJFZgrkuJM) · [**Devpost submission ↗**](https://devpost.com/software/patch-live-codebreakers)
 
-- **[Landing page](https://patch-live.vercel.app/)** — cinematic, animated preview of the actual Compiler monster.
-- **[CODEBREAKERS / THE COMPILER](https://patch-live.vercel.app/duel/)** — three-stage survival campaign with evolving Twitch-chaos perks.
-- [Original Architect mode](https://patch-live.vercel.app/play/) — preserved legacy three-act game.
+**JavaScript · Canvas · Twitch chat · Streamer.bot · Codex · Vercel**
 
-The new game is on `/duel/`, and the landing page now opens it directly.
+<a href="https://youtu.be/-sJFZgrkuJM">
+  <img src="https://img.youtube.com/vi/-sJFZgrkuJM/hqdefault.jpg" alt="PATCH//LIVE Codebreakers demo on YouTube" width="480">
+</a>
 
-### What viewers can do
+<sub>Demo contains actual offline-guided gameplay and broadcaster-provided Twitch command evidence. It is not uninterrupted live-Twitch footage.</sub>
 
-Ordinary `!power` effects apply **immediately** after a bounded global/per-person/per-power cooldown. Only physics/evolution `!patch` commands use timed rounds with **one counted ballot per Twitch user ID**; voters can switch their choice without multiplying it. The game never executes arbitrary chat code.
+</div>
 
-| Command | Examples | Actual consequence |
-|---|---|---|
-| `!power` — Save | `medkit`, `shield`, `lance`, `cannon`, `vampire`, `overtime` | Restore HP, absorb a hit, equip a new visible weapon, or add time |
-| `!power` — Sabotage | `bossheal`, `armor`, `frenzy`, `shackle`, `reverse`, `timecut` | Heal/armor the monster, accelerate attacks, restrict movement, reverse controls, or steal time |
-| `!power` — Arena | `squeeze`, `crossfire`, `eclipse`, `shock`, `evolve`, `shuffle` | Shrink the arena, spawn additional attack lanes, cause darkness or shock, evolve the boss, teleport the streamer |
-| `!patch` — Physics | `meteor`, `moon`, `reverse`, `hyper`, `magnet`, `blackout` | Six allowlisted physical laws; compatible pairs such as `!patch meteor+moon` |
+---
 
-The server never executes arbitrary viewer-supplied commands. All chat input is parsed into exact, allowlisted, bounded effects. Gameplay caps include maximum HP, boss maximum HP, finite timed debuffs, and minimum remaining clock time.
+## The game, in 30 seconds
 
-### What makes the monster different
+The streamer fights. **The viewers control the chaos.**
 
-**THE COMPILER** is an original procedurally animated coding-themed monster. It has an articulated chassis, mechanical claws, horned crown, diagnostic face, luminous execution core, and a multi-layer rift arena. Viewer-authored rule wins trigger three actual creature morphologies:
+- **Fight, don't just watch.** Move, dash, strike nearby enemies and reflect incoming projectiles into threats.
+- **Let chat intervene instantly.** Heal the player, block a hit, upgrade their weapon—or buff the boss and sabotage the arena.
+- **Let chat mutate The Compiler.** Major physical-law changes are decided by timed votes, with one counted ballot per real Twitch user ID per round.
+- **Progress through a real campaign.** Defeat minions, break the Sentinel, then face a multi-form procedural final boss.
+- **Chase a better run.** Score kills, reflections and wave clears; beat a locally saved personal best.
 
-- **Stack Overflow** — furnace-colored weapons and catastrophe attacks.
-- **Recursive Entity** — orbital fragments, altered gravity and recurring strikes.
-- **Null Devourer** — winged silhouette, darkness and void attacks.
+**The game is playable immediately without Twitch credentials.** The offline guided run and Chat Lab are clearly marked *simulated*. Real chat requires a separate Twitch connection, described below.
 
-Armor votes build physical metal plates on the body; Frenzy votes electrify its limbs. Every successful return shot damages the boss. The finale credits the last five audience choices with viewer names and displays the campaign score, personal best, highest wave, enemies defeated, reflections and grade.
+| Try it | Purpose |
+| :--- | :--- |
+| [**Codebreakers / Play**](https://patch-live.vercel.app/duel/) | Main three-wave raid, manual play, offline guided demo and Twitch connection |
+| [**Cinematic landing**](https://patch-live.vercel.app/) | Original animated Compiler key art and product introduction |
+| [**Architect / Legacy mode**](https://patch-live.vercel.app/play/) | Preserved original boss encounter; not the primary submission |
+| [**Project on Devpost**](https://devpost.com/software/patch-live-codebreakers) | Submitted hackathon story and project media |
+| [**YouTube demo**](https://youtu.be/-sJFZgrkuJM) | 89-second edited walkthrough and evidence excerpts |
 
-## Three-stage playable campaign
+## How to play
 
-| Stage | Opponents | Objective |
-|---|---|---|
-| 01 — System Breach | Chasing Glitchlings and airborne Packet Drones | Delete 12 minor enemies |
-| 02 — Firewall Uprising | The 300-HP Sentinel, plus drones and glitches | Break the Sentinel's health through reflections |
-| 03 — Final Compilation | THE COMPILER with accumulated audience mutations and supporting enemies | Defeat the Compiler before the raid timer expires |
+| Streamer control | Action |
+| :--- | :--- |
+| **A / D** or **← / →** | Move across the arena |
+| **Space** or **J** | Reflect a *nearby* falling projectile; strike a Glitchling at close range |
+| **Shift** or **K** | Dash to avoid danger |
+| **Touch controls** | Mobile equivalents below the arena |
 
-Score rewards kills, reflection chains, wave clears and the final victory. The browser stores an individual personal best locally. There is no public leaderboard backend or paid monetization integration in this build.
+Start with **START THE RAID** for manual play. Read the contextual **STREAMER GUIDE** when a projectile or nearby enemy needs attention. **HOW TO PLAY** expands a full controls/goal explanation.
 
-### Creator monetization roadmap (not implemented)
+For a walkthrough, choose **WATCH THE CHAOS**. That mode uses six **simulated** viewers and the real campaign/combat rules. It can reach a genuine victory by defeating the final boss, but it is **not** a Twitch session.
 
-Twitch Channel Points and approved Twitch monetization products could support optional cosmetics or bonus spectacle in a future release. **This build does not collect Bits, payments or donations**, and participation is free. Any paid integrations must respect Twitch's current developer and monetization requirements, creator controls, cooldowns and fair play.
+### Three stages, one evolving monster
 
-## Start, play, and test
+| Wave | Encounter | Win condition |
+| :---: | :--- | :--- |
+| **01 · System Breach** | Glitchlings + Packet Drones | Delete **12** minor enemies |
+| **02 · Firewall Uprising** | **The Sentinel** + supporting enemies | Defeat the **300-HP** miniboss using reflected attacks |
+| **03 · Final Compilation** | **The Compiler**, affected by accumulated mutations | Reduce the final boss to **0 HP** before time runs out |
 
-Use `START THE RAID` for manual controls: **A/D or arrows** move, **Space/J** reflects a falling projectile **when it is close to the streamer**, or strikes a nearby ground Glitchling, and **Shift/K** dashes. Move into the incoming projectile's lane, then reflect near impact. The HUD now contains a contextual STREAMER GUIDE and an expandable **HOW TO PLAY** panel. On phones, touch controls provide the same actions.
+The Compiler is **original procedural game art**, not an OpenAI mascot or official Twitch/OpenAI character. Its three audience-driven morphologies are **Stack Overflow**, **Recursive Entity** and **Null Devourer**, with armor, frenzy, physics and attack effects that change the fight—not just the text on screen.
 
-**Beginner-friendly survival:** the player begins with **three shields** and a three-second grace period, takes 9/12/14 projectile damage as waves become harder, receives a brief protected interval after a hit, and gains health, a shield and temporary upgraded equipment between waves. The real manual encounter still uses damage, defeat, and a four-minute time limit. A stationary player is expected to eventually lose. The browser locally saves the personal-best score.
+Manual raids use real damage and defeat states, a four-minute clock and wave rewards. The streamer starts with three shields, opening grace protection and increasing projectile damage across waves. Wave transitions restore health and award a shield/weapon upgrade. Scores and personal bests live in the browser; **there is no multiplayer leaderboard or payments backend**.
 
-**Chat quick-start:** the right-side rail now shows exact commands and a **COPY CHAT INSTRUCTIONS** button for the streamer to paste into the Twitch channel. Viewers use `!power shield` (block a hit), `!power medkit` (heal 24 HP), `!power armor` (empower the boss), or `!patch meteor+moon` (vote on the boss mutation). Commands must be sent during a running raid in the broadcaster's Twitch chat. Instant powers have viewer/effect cooldowns; only boss physics mutations use votes.
+## Twitch chat: make the audience part of the fight
 
-Use `WATCH THE CHAOS` for an **explicitly offline** assisted demonstration. Local simulated viewers activate the same bounded instant-power and evolution-voting logic. The guide moves, parries, takes real damage, clears all three waves and wins only after the final boss's actual health reaches zero. It does not simulate a Twitch connection.
+Viewers type commands **in the broadcaster's Twitch chat**, not in a text field on the game page. During an active raid:
 
-You can also use the in-game OFFLINE CHAT LAB to send test `!power` or `!patch` commands without Twitch credentials. Offline messages are always identified as local simulations.
+| Chat command | What happens |
+| :--- | :--- |
+| `!power shield` | Adds protection when the shield cap permits |
+| `!power medkit` | Restores up to **24 HP** |
+| `!power lance` | Temporarily equips longer-range reflection |
+| `!power cannon` | Temporarily equips stronger return shots |
+| `!power armor` | Raises the boss's maximum health, within a cap |
+| `!power shackle` | Temporarily restricts streamer movement |
+| `!power timecut` | Removes a bounded amount of raid time |
+| `!power squeeze` | Temporarily narrows the arena |
+| `!patch meteor+moon` | Votes for a combined physical-law mutation |
 
-### Alternate Twitch chat connection: Streamer.bot (no developer-app registration)
+**Instant powers** have global/viewer/effect cooldowns; they do not wait for a poll. **Physics/evolution votes** use a timed round and one counted vote per Twitch user ID; changing a vote replaces the earlier choice. The allowlist comprises **18 powers** and **6 physics rules**. See [`src/audience-director.js`](src/audience-director.js) and [`src/patches.js`](src/patches.js) for the exact supported syntax and limits.
 
-**This route still requires a real Twitch account login.** It avoids PATCH's custom Twitch developer app registration by using Streamer.bot's own broadcaster OAuth and local WebSocket. The broadcaster's November 1 screenshots show PATCH in the `TWITCH CHAT VIA STREAMER.BOT` state with a real `!power shield` command credited to their Twitch username, and the broadcaster confirmed that chat worked. No raw Twitch transport logs were captured by the assistant; offline browser fixtures remain separately labelled simulations.
+### Connect real Twitch chat — the tested Streamer.bot route
 
-1. Download stable Streamer.bot from https://streamer.bot/downloads, extract the ZIP into a regular local directory and run `Streamer.bot.exe`.
-2. In Streamer.bot, open **Platforms → Twitch → Accounts** and use **Broadcaster Account → Login** to authorize the Twitch channel. This authorization is performed by Streamer.bot, not PATCH.
-3. Go to **Servers/Clients → WebSocket Server**. Enable and start it with address **127.0.0.1**, port **8080**, endpoint **/**. Leave the listener bound to localhost. This read-only bridge supports the default non-enforced local WebSocket configuration; an enforced password configuration will report a connection error, not silently bypass authentication.
-4. Open `https://patch-live.vercel.app/duel/` on **the same Windows computer**, select **CONNECT TWITCH**, then **CONNECT LOCAL STREAMER.BOT**. Allow the browser's **local-network/loopback permission** if prompted.
-5. The UI should first say **STREAMER.BOT / WAITING FOR CHAT**. This only confirms a local subscription and does not prove Twitch is active.
-6. Start the raid and type `!power shield` or `!patch meteor+moon` into the broadcaster's **real Twitch chat**. Only a genuine, non-test `Twitch.ChatMessage` with a Twitch numeric user ID may switch the display to **TWITCH / CHAT RECEIVED**. Show the command, displayed username, and game effect in the real demonstration.
-7. If the local server closes or Twitch authorization is absent, the UI must return to an error/offline state. No simulated Chat Lab messages should be shown as live.
+This uses the broadcaster's **authorized Twitch login inside Streamer.bot** and a **local WebSocket bridge**. It avoids registering a new custom Twitch developer application, but **it does not bypass Twitch authorization**.
 
-This is **not** a public internet relay, payment connection, or verified production Twitch EventSub session. PATCH only connects to `ws://127.0.0.1:8080/` and requests Streamer.bot's `Twitch.ChatMessage` subscription. Keep the WebSocket server bound to the loopback address. Browser security may require explicit local-network permission. This route does not let a judge access your Windows computer; a clear recorded real-chat demonstration is particularly important.
+1. Install the Windows app from [streamer.bot/downloads](https://streamer.bot/downloads).
+2. In Streamer.bot, open **Platforms → Twitch → Accounts** and authorize the **Broadcaster Account**.
+3. Under **Servers/Clients → WebSocket Server**, start a server bound to **`127.0.0.1`**, port **`8080`**, endpoint **`/`**. Keep it on loopback; do not expose that server to the internet.
+4. On **the same computer**, open [the Codebreakers game](https://patch-live.vercel.app/duel/) → **CONNECT TWITCH** → **CONNECT LOCAL STREAMER.BOT**. If the browser prompts for access to the local network, allow it.
+5. First confirm **STREAMER.BOT / WAITING FOR CHAT**. That proves a local subscription, **not** a real Twitch event.
+6. Start a raid and type `!power shield` or `!power medkit` in the channel's Twitch chat. When an authenticated, non-test `Twitch.ChatMessage` arrives through Streamer.bot, the UI can show **TWITCH / CHAT RECEIVED**, the viewer's username and an eligible in-game effect.
 
-Official docs: https://docs.streamer.bot/guide/platforms/twitch/ · https://docs.streamer.bot/api/websocket/guide/configuration · https://docs.streamer.bot/api/websocket/requests
+**Evidence level:** the broadcaster tested Streamer.bot and provided screenshots showing their `!power shield` message credited in-game; they confirmed that it worked. We did **not** independently archive raw Twitch transport logs. The uploaded demo uses screenshots for this evidence and offline-guided footage for the complete campaign.
 
-### Twitch connection
+The bridge connects only to `ws://127.0.0.1:8080/`, requests `Twitch.ChatMessage`, rejects explicitly marked test messages and malformed/anonymous chat, and deduplicates message IDs. It does **not** support password-enforced Streamer.bot WebSocket authentication; keep the default listener **local-only**, not internet-accessible.
 
-1. Create a **Public** Twitch developer application (enable 2FA on the Twitch account if the developer console requires it).
-2. Register the OAuth redirect **exactly**: `https://patch-live.vercel.app/duel/` including trailing slash.
-3. Open `/duel/`, click **CONNECT TWITCH**, enter the app's **public Client ID** and authorize the broadcaster.
-4. The game uses the existing Twitch OAuth + EventSub WebSocket implementation with `user:read:chat` and subscribes to `channel.chat.message` for the authorized broadcaster. It should only mark the chat LIVE when the subscription has been accepted.
-5. Send a command from another chat account to the broadcaster's channel, and verify the vote, credited username, effect, and win/lose behavior.
+For setup details: [Streamer.bot WebSocket configuration](https://docs.streamer.bot/api/websocket/guide/configuration) · [Twitch account setup](https://docs.streamer.bot/guide/platforms/twitch/)
 
-**Current verification limitation:** no authenticated real Twitch EventSub event has been captured in this project yet. This instruction is a flow to test, not a claim the connection has already succeeded. Client secrets and tokens must never be shared in public threads or committed to GitHub. The Client ID alone is public.
+<details>
+<summary><strong>Alternative: direct Twitch OAuth + EventSub (implemented, not live-verified)</strong></summary>
 
-The live broadcaster should open the game in a normal browser and use a window capture or OBS browser source that supports the auth session. The stream must contain *actual* Twitch chat if it is being presented as Twitch footage.
+1. Register a **Public** application in the [Twitch Developer Console](https://dev.twitch.tv/console/apps) and configure the exact redirect URI `https://patch-live.vercel.app/duel/`.
+2. In Codebreakers, choose **CONNECT TWITCH** and enter the application's public Client ID.
+3. Approve `user:read:chat`. The browser flow validates its OAuth state and access token.
+4. The client connects to Twitch EventSub WebSockets and subscribes to `channel.chat.message` after the welcome session; it also implements reconnect and revocation handling.
+5. Verify with a real permitted viewer message before describing this method as working live.
 
-## Local development
+This direct route has **not** been end-to-end tested with authenticated Twitch credentials. Never commit access tokens or Client Secrets.
 
-Node 20+ is recommended.
+References: [Twitch chat subscriptions](https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/) · [Twitch EventSub WebSockets](https://dev.twitch.tv/docs/eventsub/handling-websocket-events)
+
+</details>
+
+## Reproduce locally
+
+**Requirements:** Node.js **20+**; no production npm dependencies.
 
 ```bash
+git clone https://github.com/Iniwura/patch-live.git
+cd patch-live
 npm install
 npm test
 npm run build
 npm run dev
 ```
 
-Open `http://localhost:4173/duel/`.
+Open **http://localhost:4173/duel/** for Codebreakers or **http://localhost:4173/** for the landing page.
 
-Code map:
+To preview the exact output produced by the build:
 
-- `src/codex-monster.js` — original procedural boss art, three forms, armored and frenzied overlays, cached architectural stage.
-- `src/duel.js` and `src/duel.css` — three-stage raid orchestration, instant chat powers, reflected projectiles, wave HUD, scoring, audio and touch controls.
-- `src/raid-campaign.js` — independent Glitchlings/Packet Drones, the Sentinel miniboss, wave objectives, target resolution and scoring.
-- `src/audience-director.js` — 18 effects, strict allowlisted parser, normalized Twitch IDs and vote tally.
-- `src/boss-evolution.js` — bounded boss DNA, attack choices and gameplay physics.
-- `src/twitch.js` — OAuth and validated EventSub WebSocket connection.
-- `src/landing.js` — cinematic teaser sharing the actual animated boss.
-- `play/`, `src/engine.js` — preserved older Architect encounter.
-- `tests/` — unit, regression and renderer smoke tests.
-- `scripts/build.mjs` — static deployment for Vercel.
+```bash
+npm run preview
+```
 
-## Release and submission integrity
+`dist/` is generated by `npm run build`. Edit the source HTML/CSS/JS instead of generated output. Production deployment uses [`vercel.json`](vercel.json), with the static build output served by Vercel.
 
-The real foundation and original Architect game were developed in the user's genuine Codex desktop thread. Later art, raid-mode and audience-director changes were made in ChatGPT and on GitHub. **Do not claim that the whole project was written by Codex**. Keep the actual Codex transcript and retrieve its session ID using `/status`.
+### Architecture, at a glance
 
-The official rules require a repository, a demo video shorter than three minutes showing the actual project operating **on Twitch** and how Codex was used, a description and the authentic Codex session ID. An offline simulation is not a substitute for the live evidence.
+```mermaid
+flowchart LR
+  T["Real Twitch chat"] --> SB["Streamer.bot · broadcaster login"]
+  SB -->|"Local WebSocket / Twitch.ChatMessage"| BR["Streamer.bot bridge"]
+  T -.->|"Optional direct OAuth + EventSub"| EVT["Twitch client · not live-verified"]
+  BR --> C["Validated !power / !patch parser"]
+  EVT --> C
+  LAB["Offline Chat Lab / guided simulated viewers"] --> C
+  C --> A["Audience Director: cooldowns / voter identity / vote tally"]
+  A --> G["Raid + boss evolution state"]
+  G --> HUD["Canvas combat / score / streamer HUD"]
+```
 
-See [CODEX_WORKLOG.md](CODEX_WORKLOG.md), [CODEX_FINAL_CLEANUP.md](CODEX_FINAL_CLEANUP.md), [AUDIENCE_DIRECTOR_RELEASE.md](AUDIENCE_DIRECTOR_RELEASE.md), and [LAST_STAND_EXPERIMENT.md](LAST_STAND_EXPERIMENT.md) for history, verification, and constraints.
+All code runs in the browser after the static build; the Streamer.bot route depends on **a local desktop application**, not a hosted PATCH relay.
+
+<details>
+<summary><strong>Source map for reviewers</strong></summary>
+
+| Path | Responsibility |
+| :--- | :--- |
+| [`duel/index.html`](duel/index.html) | Codebreakers UI and controls |
+| [`src/duel.js`](src/duel.js) / [`src/duel.css`](src/duel.css) | Active game loop, Canvas combat, scoring, UI, audio and touch |
+| [`src/raid-campaign.js`](src/raid-campaign.js) | Three-wave objectives, minions and Sentinel |
+| [`src/raid-coach.js`](src/raid-coach.js) | Contextual streamer coaching and combat balance |
+| [`src/audience-director.js`](src/audience-director.js) | Exact command allowlist, instant powers, identity and ballots |
+| [`src/patches.js`](src/patches.js) / [`src/boss-evolution.js`](src/boss-evolution.js) | Physics recipes and persistent boss mutations |
+| [`src/codex-monster.js`](src/codex-monster.js) | Original procedurally drawn Compiler forms |
+| [`src/streamerbot-bridge.js`](src/streamerbot-bridge.js) | Local, read-only Twitch chat transport |
+| [`src/twitch.js`](src/twitch.js) | Optional OAuth / EventSub WebSocket client |
+| [`src/landing.js`](src/landing.js) / [`src/landing.css`](src/landing.css) | Cinematic product landing |
+| [`play/`](play/) / [`src/engine.js`](src/engine.js) | Preserved Architect encounter |
+| [`tests/`](tests/) | Unit, regression, gameplay and UI checks |
+| [`scripts/build.mjs`](scripts/build.mjs) | Static site bundling |
+
+</details>
+
+## Verification & evidence
+
+| Verification | Status |
+| :--- | :--- |
+| **Node automated tests** | **64 passing** on the last verified main release; rerun `npm test` for the current branch |
+| **Production build** | Verified `npm run build` on the final UI release |
+| **Browser smoke** | Desktop and phone-size Chromium checks passed for landing/game, controls and Streamer.bot modal |
+| **Campaign** | Actual engine completes three waves, defeats The Compiler and records victory/score in guided testing |
+| **Streamer.bot connected chat** | Broadcaster screenshot and direct confirmation of a credited Twitch command; not a raw event log |
+| **Direct OAuth/EventSub live** | **Not verified** |
+| **Monetization / public multiplayer leaderboard** | **Not implemented** |
+
+Verification is specific to the tested revision and environment; no claim of a full security audit or universal browser compatibility is made. See the dated [`LIVE_EVIDENCE.md`](LIVE_EVIDENCE.md) and [`CODEX_FINAL_CLEANUP.md`](CODEX_FINAL_CLEANUP.md) for exact scope and historical test results.
+
+### Built with Codex — with attribution that matches the record
+
+The foundation and original Architect encounter were built in the user's **genuine Codex desktop session**, followed by a Codex engineering cleanup that fixed timing, focused-input handling and Twitch revocation behavior ([PR #7](https://github.com/Iniwura/patch-live/pull/7)). The original **session ID was verified via `/status`** and supplied in Devpost.
+
+**Later Codebreakers expansion, Streamer.bot integration and the final visual redesign were implemented separately**, with ChatGPT-assisted work and GitHub changes. This repository does **not** claim that every line was written in Codex.
+
+- [Codex worklog](CODEX_WORKLOG.md) and [verified cleanup](CODEX_FINAL_CLEANUP.md)
+- [Original gameplay/audience implementation PR](https://github.com/Iniwura/patch-live/pull/5)
+- [Twitch bridge PR](https://github.com/Iniwura/patch-live/pull/8)
+- [Onboarding and gameplay balance PR](https://github.com/Iniwura/patch-live/pull/9)
+- [Final UI design PR](https://github.com/Iniwura/patch-live/pull/10)
+
+**Submission:** [Codex × TwitchCon Hackathon entry](https://devpost.com/software/patch-live-codebreakers) · [YouTube project video](https://youtu.be/-sJFZgrkuJM).
+
+## Security, scope & limitations
+
+- **Not an official Twitch or OpenAI product.** The Compiler character and art are original.
+- Viewer input is treated as **untrusted data**. Commands are parsed against strict predefined effects; chat is never executed as code.
+- The optional Streamer.bot WebSocket is **loopback-only** and supports **no password authentication**; exposing it beyond the local PC is unsafe.
+- The direct Twitch client uses browser-session storage for the access token; **never put secrets in Git, logs or publicly shared screenshots**.
+- Offline guided mode uses simulated viewers and must never be presented as real Twitch chat.
+- The game is free to play. **Channel Points, Bits, paid effects, accounts, hosted persistence and public rankings are not included**.
+
+---
+
+<div align="center">
+
+**THE CROWD BUILDS THE BOSS. YOU BREAK IT.**
+
+[**Play Codebreakers**](https://patch-live.vercel.app/duel/) · [**Watch the demo**](https://youtu.be/-sJFZgrkuJM) · [**Explore the source**](https://github.com/Iniwura/patch-live)
+
+</div>
