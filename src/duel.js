@@ -4,6 +4,7 @@ import { demoChatEvent } from './demo.js';
 import { BOSS_FORMS, evolveArchitect, bossRuleDynamics } from './boss-evolution.js';
 import { drawCodexMonster, drawCompilerStage } from './codex-monster.js';
 import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, disconnectToken, redirectUri } from './twitch.js';
+import { RAID_WAVES, createCampaign, tickCampaign, chooseRaidTarget, applyRaidHit, canAdvanceCampaign, nextRaidWave, finishCampaign, rankCampaign } from './raid-campaign.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
@@ -21,7 +22,8 @@ let state;
 function makeState(){
   round=new AudienceRound(ROUND_MS);
   return {
-    running:false, guided:false, finished:false, elapsed:0, duration:60,
+    running:false, guided:false, finished:false, elapsed:0, duration:240, raid:createCampaign(),
+    cooldownUsers:new Map(), cooldownPowers:new Map(), nextInstant:0,
     player:{x:316,y:FLOOR-32, vx:0, health:100, shields:0, invuln:0, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
     boss:{x:BOSS_X,y:BOSS_Y,maxHealth:460,health:460,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
     attacks:[], refractions:[], particles:[], ambient:[], nextAttack:1.3,
@@ -35,6 +37,7 @@ state=makeState();
 
 const COMMANDS=POWERS;
 const TABS=['ally','enemy','arena','physics'];
+const CLOCK={individual:7,effect:8,global:1.1};
 let activeTab='ally';
 let actualLive=false;
 
@@ -64,16 +67,42 @@ function synth(freq,duration=.09,type='triangle',vol=.06){
   }catch{}
 }
 function acceptChatVote(evt,origin='local'){
-  if(!state.running)return {ok:false,message:'START THE FIGHT FIRST'};
+  if(!state.running)return {ok:false,message:'START THE RAID FIRST'};
   const p=canonicalAudienceUser(evt);
-  if(!p)return {ok:false,message:'INVALID / USE !power medkit OR !patch meteor+moon'};
-  if(!round.vote(p.userId,p,Date.now(),p.name))return {ok:false,message:'VOTE ALREADY CAST, OR ROUND CLOSED'};
+  if(!p)return {ok:false,message:'USE !power shield (instant) OR !patch meteor+moon (evolution vote)'};
+  if(p.type==='power'){
+    const now=state.elapsed;
+    if(now<(state.cooldownUsers.get(p.userId)||0))return {ok:false,message:'VIEWER COOLDOWN — WAIT BEFORE CASTING AGAIN'};
+    if(now<(state.cooldownPowers.get(p.id)||0))return {ok:false,message:'ABILITY RECHARGING — CHOOSE ANOTHER'};
+    if(now<state.nextInstant)return {ok:false,message:'GLOBAL CAST COOLDOWN — TRY AGAIN'};
+    state.cooldownUsers.set(p.userId,now+CLOCK.individual);
+    state.cooldownPowers.set(p.id,now+CLOCK.effect);
+    state.nextInstant=now+CLOCK.global;
+    const effect=applyPower(state,p.id,[p.name]);
+    if(!effect)return {ok:false,message:'EFFECT FAILED'};
+    state.authors.add(p.name);
+    state.history.push({power:effect.id,authors:[p.name],side:effect.side});
+    state.hudText=effect.name.toUpperCase();
+    state.hudSmall=p.name.toUpperCase()+' / '+(SIDE_INFO[effect.side]?.label||'AUDIENCE');
+    state.shake=5;state.flashes=.11;
+    impact(effect.name.toUpperCase()+'!',effect.side==='ally'?'':'pink');
+    displayFeed(p.name.toUpperCase()+' / '+(origin==='twitch'?'TWITCH':'OFFLINE'),
+      'INSTANT '+effect.name+' · '+effect.description,effect.side==='ally'?'good':'hot');
+    sparks(effect.side==='ally'?state.player.x:state.boss.x,
+      effect.side==='ally'?state.player.y:state.boss.y,
+      SIDE_INFO[effect.side].color,18);
+    state.points+=15;
+    synth(effect.side==='ally'?570:154,.17,'sawtooth',.05);
+    updateUI();
+    return {ok:true,message:'INSTANT '+effect.name+' ACTIVATED'};
+  }
+  if(!round.vote(p.userId,p,Date.now(),p.name))return {ok:false,message:'EVOLUTION VOTE ALREADY CAST OR ROUND CLOSED'};
   state.sampleVotes++;
-  displayFeed(p.name.toUpperCase()+' / '+(origin==='twitch'?'TWITCH':'OFFLINE'),p.id.toUpperCase().replace('+',' + '),p.type==='power'?'good':'hot');
+  displayFeed(p.name.toUpperCase()+' / '+(origin==='twitch'?'TWITCH':'OFFLINE'),p.id.toUpperCase(),'hot');
   const winner=round.leader();
-  $('next-effect').textContent=winner?'LEADING · '+winner.id.toUpperCase().replace('+',' + '):'AWAITING CHAT';
+  $('next-effect').textContent=winner?'EVOLUTION · '+winner.id.toUpperCase():'AWAITING PATCH VOTES';
   updateVoteUI();synth(280,.035,'square',.017);
-  return {ok:true,message:(origin==='twitch'?'TWITCH VOTE':'LOCAL TEST ACCEPTED')+' · '+p.id.toUpperCase()};
+  return {ok:true,message:'EVOLUTION VOTE ACCEPTED · '+p.id.toUpperCase()};
 }
 function castLocalVote(name,command){
   if(actualLive)return {ok:false,message:'OFFLINE TEST VOTING IS DISABLED WHILE TWITCH IS LIVE'};
@@ -150,33 +179,38 @@ function buildEffectButtons(){
     b.setAttribute('aria-selected',String(b.dataset.tab===activeTab));
   });
   $('power-command').textContent=activeTab==='physics'?'!patch meteor+moon':'!power '+(list[0]?.id||'medkit');
+  $('vote-caption').textContent=activeTab==='physics'?'EVOLUTION VOTES / ONE PER VIEWER':'INSTANT POWERS / COOLDOWN LIMITED';
   updateVoteUI();
 }
 const demoVotes=[
-  {t:.5,name:'guardian_fox',command:'!power lance'},
-  {t:1,name:'mercy_main',command:'!power lance'},
-  {t:8.4,name:'chaoswitch',command:'!power armor'},
-  {t:8.9,name:'raid_boss',command:'!power armor'},
-  {t:16.5,name:'night_shift',command:'!power squeeze'},
-  {t:17,name:'pixel_fiend',command:'!power squeeze'},
-  {t:24.6,name:'orbitwitch',command:'!patch meteor+moon'},
-  {t:25.1,name:'void_runner',command:'!patch moon+meteor'},
-  {t:32.5,name:'clockbreaker',command:'!power timecut'},
-  {t:33.0,name:'troll_9000',command:'!power timecut'},
-  {t:40.5,name:'medic_01',command:'!power medkit'},
-  {t:41.0,name:'modteam',command:'!power medkit'}
+  {t:2,name:'guardian_fox',command:'!power lance'},
+  {t:9,name:'chaoswitch',command:'!power armor'},
+  {t:17,name:'night_shift',command:'!power squeeze'},
+  {t:25,name:'orbitwitch',command:'!patch meteor+moon'},
+  {t:25.8,name:'void_runner',command:'!patch moon+meteor'},
+  {t:34,name:'clockbreaker',command:'!power timecut'},
+  {t:43,name:'medic_01',command:'!power medkit'},
+  {t:53,name:'pixel_fiend',command:'!patch blackout+magnet'},
+  {t:53.8,name:'null_runner',command:'!patch blackout+magnet'},
+  {t:63,name:'glitch_baron',command:'!power frenzy'},
+  {t:75,name:'shield_mate',command:'!power shield'},
+  {t:87,name:'mercy_main',command:'!power cannon'},
+  {t:103,name:'raid_boss',command:'!power bossheal'}
 ];
 function start(guided){
   if(guided&&actualLive){displayFeed('SYSTEM','DISCONNECT TWITCH BEFORE RUNNING AN OFFLINE SHOWCASE');return;}
   state=makeState();state.guided=!!guided;state.running=true;
+  state.duration=guided?165:240;
   keys.clear();round=new AudienceRound(guided?8000:actualLive?20000:ROUND_MS);
   $('start-screen').classList.add('hidden');
   $('result-screen').classList.add('hidden');
   $('feed').replaceChildren();$('next-effect').textContent='AWAITING CHAT';
-  $('round-indicator').textContent=guided?'OFFLINE / GUIDED SHOWCASE':'CHAPTER I — FIRST STRIKE';
+  $('round-indicator').textContent='WAVE 01 / '+RAID_WAVES[0].name;
+  $('wave-label').textContent='01 / 03';
+  $('score-value').textContent='000000';
   $('auto-chaos').textContent=guided?'AUTO CHAT RUNNING':'AUTO CHAT DEMO';
   activeTab='ally';buildEffectButtons();
-  displayFeed('SYSTEM / OFFLINE','ARENA ARMED. ALL CHAT EVENTS HERE ARE LOCAL SIMULATIONS.','good');
+  displayFeed('SYSTEM / '+(actualLive?'TWITCH':'OFFLINE'),'THREE-WAVE RAID ARMED. POWER COMMANDS ARE INSTANT; PATCHES VOTE ON EVOLUTION.','good');
   updateVoteUI();canvas.focus();synth(380,.22,'sawtooth',.045);
 }
 function finish(won){
