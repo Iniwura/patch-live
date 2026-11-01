@@ -48,7 +48,7 @@ test('boss support and tempo sabotage cannot overflow the game bounds',()=>{
  for(let i=0;i<20;i++)applyPower(s,'timecut');
  assert.ok(s.duration>=s.elapsed+15);
  for(let i=0;i<20;i++)applyPower(s,'overtime');
- assert.ok(s.duration<=90);
+ assert.ok(s.duration<=300);
 });
 test('temporary arena restrictions expire; teleport gives reaction grace',()=>{
  const s=world();
@@ -63,4 +63,13 @@ test('winning evolve perk modifies actual boss form',()=>{
  assert.equal(outcome.id,'evolve');
  assert.equal(s.boss.evolution,1);
  assert.equal(s.boss.form,'CATACLYSM');
+});
+
+test('overtime can never shorten a four-minute raid',()=>{
+ const s=world();s.duration=240;
+ const effect=applyPower(s,'overtime');
+ assert.equal(s.duration,250);
+ assert.match(effect.description,/10s/);
+ for(let i=0;i<20;i++)applyPower(s,'overtime');
+ assert.equal(s.duration,300);
 });
