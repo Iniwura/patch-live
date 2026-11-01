@@ -137,7 +137,11 @@ export class TwitchChat {
         else this.status('error', 'Twitch sent an invalid reconnect URL.');
       } else if (type === 'revocation') {
         this.active = false;
-        this.status('error', `Twitch authorization revoked: ${packet.payload?.subscription?.status || 'unknown'}`);
+        const reason = packet.payload?.subscription?.status || 'unknown';
+        // A revoked subscription must not leave a usable token or a reconnect loop behind.
+        this.stop();
+        safeRemove('sessionStorage', TOKEN_KEY);
+        this.status('error', `Twitch authorization revoked: ${reason}`);
       }
     };
     ws.onerror = () => { if (!this.stopped && generation === this.socketGeneration) this.status('error', 'Twitch WebSocket error. Reconnecting…'); };

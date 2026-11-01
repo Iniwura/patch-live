@@ -73,3 +73,13 @@ test('overtime can never shorten a four-minute raid',()=>{
  for(let i=0;i<20;i++)applyPower(s,'overtime');
  assert.equal(s.duration,300);
 });
+
+test('timecut preserves the safe runway without extending a late raid',()=>{
+ const s=world();s.duration=240;s.elapsed=238;
+ const effect=applyPower(s,'timecut');
+ assert.equal(s.duration,240);
+ assert.match(effect.description,/0s/);
+ s.elapsed=220;s.duration=240;
+ applyPower(s,'timecut');
+ assert.equal(s.duration,235);
+});
