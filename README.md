@@ -53,7 +53,11 @@ Twitch Channel Points and approved Twitch monetization products could support op
 
 ## Start, play, and test
 
-Use `START THE RAID` for manual controls: **A/D or arrows** move, **Space/J** reflects incoming projectiles or strikes nearby Glitchlings, **Shift/K** dashes. On phones, touch controls provide the same actions. The full raid has a four-minute time limit; clearing Wave 1 and defeating The Sentinel unlock staged equipment and health rewards. Your local personal-best score is saved in browser storage.
+Use `START THE RAID` for manual controls: **A/D or arrows** move, **Space/J** reflects a falling projectile **when it is close to the streamer**, or strikes a nearby ground Glitchling, and **Shift/K** dashes. Move into the incoming projectile's lane, then reflect near impact. The HUD now contains a contextual STREAMER GUIDE and an expandable **HOW TO PLAY** panel. On phones, touch controls provide the same actions.
+
+**Beginner-friendly survival:** the player begins with **three shields** and a three-second grace period, takes 9/12/14 projectile damage as waves become harder, receives a brief protected interval after a hit, and gains health, a shield and temporary upgraded equipment between waves. The real manual encounter still uses damage, defeat, and a four-minute time limit. A stationary player is expected to eventually lose. The browser locally saves the personal-best score.
+
+**Chat quick-start:** the right-side rail now shows exact commands and a **COPY CHAT INSTRUCTIONS** button for the streamer to paste into the Twitch channel. Viewers use `!power shield` (block a hit), `!power medkit` (heal 24 HP), `!power armor` (empower the boss), or `!patch meteor+moon` (vote on the boss mutation). Commands must be sent during a running raid in the broadcaster's Twitch chat. Instant powers have viewer/effect cooldowns; only boss physics mutations use votes.
 
 Use `WATCH THE CHAOS` for an **explicitly offline** assisted demonstration. Local simulated viewers activate the same bounded instant-power and evolution-voting logic. The guide moves, parries, takes real damage, clears all three waves and wins only after the final boss's actual health reaches zero. It does not simulate a Twitch connection.
 
@@ -61,7 +65,7 @@ You can also use the in-game OFFLINE CHAT LAB to send test `!power` or `!patch` 
 
 ### Alternate Twitch chat connection: Streamer.bot (no developer-app registration)
 
-**This route still requires a real Twitch account login.** It avoids PATCH's custom Twitch developer app registration by using Streamer.bot's own broadcaster OAuth and local WebSocket. It has NOT been tested with the user's live Twitch account and must not be represented as authenticated until real chat is observed.
+**This route still requires a real Twitch account login.** It avoids PATCH's custom Twitch developer app registration by using Streamer.bot's own broadcaster OAuth and local WebSocket. The broadcaster's November 1 screenshots show PATCH in the `TWITCH CHAT VIA STREAMER.BOT` state with a real `!power shield` command credited to their Twitch username, and the broadcaster confirmed that chat worked. No raw Twitch transport logs were captured by the assistant; offline browser fixtures remain separately labelled simulations.
 
 1. Download stable Streamer.bot from https://streamer.bot/downloads, extract the ZIP into a regular local directory and run `Streamer.bot.exe`.
 2. In Streamer.bot, open **Platforms → Twitch → Accounts** and use **Broadcaster Account → Login** to authorize the Twitch channel. This authorization is performed by Streamer.bot, not PATCH.
