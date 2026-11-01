@@ -401,8 +401,7 @@ function update(dt){
       bolt.hit=true;
       const power=24+Math.min(12,state.combo*2)+(b.weakWindow>0?4:0)+(state.weapon==='cannon'&&state.elapsed<state.weaponUntil?17:0);
       if(bolt.targetId==='compiler'&&raid.wave===2){
-        b.health=Math.max(0,b.health,0)-Math.max(1,Math.round(power*.68));
-        b.health=Math.max(0,b.health);
+        b.health=Math.max(0,b.health-Math.max(1,Math.round(power*.68)));
         b.hitFlash=.32;b.morphPulse=.27;state.shake=12;
         sparks(b.x,b.y,'#eaff6e',30);
         if(b.health<=0){finish(true);break;}
