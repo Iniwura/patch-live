@@ -59,6 +59,22 @@ Use `WATCH THE CHAOS` for an **explicitly offline** assisted demonstration. Loca
 
 You can also use the in-game OFFLINE CHAT LAB to send test `!power` or `!patch` commands without Twitch credentials. Offline messages are always identified as local simulations.
 
+### Alternate Twitch chat connection: Streamer.bot (no developer-app registration)
+
+**This route still requires a real Twitch account login.** It avoids PATCH's custom Twitch developer app registration by using Streamer.bot's own broadcaster OAuth and local WebSocket. It has NOT been tested with the user's live Twitch account and must not be represented as authenticated until real chat is observed.
+
+1. Download stable Streamer.bot from https://streamer.bot/downloads, extract the ZIP into a regular local directory and run `Streamer.bot.exe`.
+2. In Streamer.bot, open **Platforms → Twitch → Accounts** and use **Broadcaster Account → Login** to authorize the Twitch channel. This authorization is performed by Streamer.bot, not PATCH.
+3. Go to **Servers/Clients → WebSocket Server**. Enable and start it with address **127.0.0.1**, port **8080**, endpoint **/**. Leave the listener bound to localhost. This read-only bridge supports the default non-enforced local WebSocket configuration; an enforced password configuration will report a connection error, not silently bypass authentication.
+4. Open `https://patch-live.vercel.app/duel/` on **the same Windows computer**, select **CONNECT TWITCH**, then **CONNECT LOCAL STREAMER.BOT**. Allow the browser's **local-network/loopback permission** if prompted.
+5. The UI should first say **STREAMER.BOT / WAITING FOR CHAT**. This only confirms a local subscription and does not prove Twitch is active.
+6. Start the raid and type `!power shield` or `!patch meteor+moon` into the broadcaster's **real Twitch chat**. Only a genuine, non-test `Twitch.ChatMessage` with a Twitch numeric user ID may switch the display to **TWITCH / CHAT RECEIVED**. Show the command, displayed username, and game effect in the real demonstration.
+7. If the local server closes or Twitch authorization is absent, the UI must return to an error/offline state. No simulated Chat Lab messages should be shown as live.
+
+This is **not** a public internet relay, payment connection, or verified production Twitch EventSub session. PATCH only connects to `ws://127.0.0.1:8080/` and requests Streamer.bot's `Twitch.ChatMessage` subscription. Keep the WebSocket server bound to the loopback address. Browser security may require explicit local-network permission. This route does not let a judge access your Windows computer; a clear recorded real-chat demonstration is particularly important.
+
+Official docs: https://docs.streamer.bot/guide/platforms/twitch/ · https://docs.streamer.bot/api/websocket/guide/configuration · https://docs.streamer.bot/api/websocket/requests
+
 ### Twitch connection
 
 1. Create a **Public** Twitch developer application (enable 2FA on the Twitch account if the developer console requires it).

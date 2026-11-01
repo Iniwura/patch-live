@@ -68,12 +68,21 @@
 </main>
 <div class="twitch-modal hidden" id="twitch-modal" role="dialog" aria-modal="true" aria-labelledby="twitch-modal-title">
 <div class="twitch-modal-content"><div class="drawer-head"><strong id="twitch-modal-title">CONNECT A REAL TWITCH CHAT</strong><button id="twitch-close" aria-label="Close Twitch connection">×</button></div>
-<p>Live mode requires a registered Twitch developer application, broadcaster authorization, and an EventSub chat subscription. No client secret is needed.</p>
+<section class="sb-connection" aria-labelledby="sb-title">
+  <span class="sb-kicker">ALTERNATIVE · NO DEVELOPER APP REGISTRATION</span>
+  <h3 id="sb-title">CONNECT WITH STREAMER.BOT</h3>
+  <p>Run Streamer.bot on this computer, log in to your Twitch broadcaster account, then start <strong>Servers/Clients → WebSocket Server</strong> on <code>127.0.0.1:8080</code>. Leave the server bound to localhost. The browser may ask permission to access your local network.</p>
+  <div class="sb-actions"><button type="button" id="sb-connect">CONNECT LOCAL STREAMER.BOT ↗</button><button type="button" id="sb-disconnect">DISCONNECT</button></div>
+  <p class="sb-feedback" id="sb-feedback" role="status" aria-live="polite">NOT CONNECTED · REAL TWITCH CHAT REQUIRED</p>
+  <a class="sb-guide" href="https://docs.streamer.bot/api/websocket/guide/configuration" target="_blank" rel="noopener noreferrer">STREAMER.BOT SETUP GUIDE ↗</a>
+</section>
+<div class="sb-divider">OR USE YOUR OWN TWITCH DEVELOPER APPLICATION</div>
+<p>The direct method requires a registered Twitch developer application, broadcaster authorization, and an EventSub chat subscription. No client secret is needed.</p>
 <form id="twitch-form"><label>PUBLIC TWITCH CLIENT ID<input id="twitch-client-id" placeholder="Your Twitch application's Client ID" autocomplete="off" required/></label>
 <div class="callback-value"><small>REGISTER THIS EXACT OAUTH REDIRECT:</small><code id="twitch-callback"></code></div>
 <button class="big-cta" type="submit">AUTHORIZE WITH TWITCH <b>↗</b></button></form>
 <p class="twitch-feedback" id="twitch-feedback"></p><button type="button" id="twitch-disconnect">DISCONNECT TWITCH</button>
-<p class="twitch-help">OFFLINE CHAT LAB remains available without credentials. Only a successfully authenticated EventSub connection can set the badge to LIVE.</p></div></div>
+<p class="twitch-help">OFFLINE CHAT LAB is simulated. A local Streamer.bot connection is labelled <strong>WAITING FOR CHAT</strong> until a real, non-test Twitch message arrives. Never present offline events as live.</p></div></div>
 <div class="lab-drawer hidden" id="lab-drawer"><div class="drawer-head"><strong>OFFLINE CHAT LAB</strong><button id="close-lab" aria-label="Close custom chat lab">×</button></div><p>Test the actual allowlisted command compiler. These users are local fixtures, not Twitch viewers.</p><form id="lab-form"><label>VIEWER NAME<input id="viewer" maxlength="25" value="night_owl" required/></label><label>COMMAND<input id="command" maxlength="100" value="!power medkit" required/></label><button class="big-cta" type="submit">SEND LOCAL COMMAND <b>↗</b></button></form><button id="resolve-now">RESOLVE CURRENT VOTE</button><span class="form-response" id="lab-response">READY FOR LOCAL INPUT.</span></div>
 </div>
 <script type="module" src="/src/duel.js"></script>
