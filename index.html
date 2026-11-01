@@ -2,62 +2,86 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#090810" />
-  <meta name="description" content="PATCH//LIVE — Twitch viewers build an evolving boss while the streamer tries to survive their creation." />
-  <title>PATCH//LIVE — Codebreakers | Three-Wave Twitch Raid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#080a0b" />
+  <meta name="description" content="PATCH//LIVE: Codebreakers. A three-wave Twitch raid where chat rewrites the boss and the streamer fights the consequences." />
+  <title>PATCH//LIVE — The raid your chat creates</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter+Tight:wght@500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/landing.css" />
 </head>
 <body class="landing-page">
-  <div class="landing-shell">
-    <header class="landing-header">
-      <a class="landing-wordmark" href="/" aria-label="PATCH LIVE home"><span>✳</span> PATCH<span class="slash">//</span>LIVE <small>001™</small></a>
-      <nav aria-label="Landing navigation"><a href="#mechanic">THE MECHANIC <span>↗</span></a><a href="#encounter">THE ENCOUNTER <span>↗</span></a></nav>
-      <a class="landing-enter" href="/duel/">ENTER THE ARENA <span>↗</span></a>
-    </header>
+ <div class="site-shell" id="top">
+  <header class="site-nav">
+   <a class="brand" href="/" aria-label="PATCH LIVE home"><span class="brand-mark">✳</span><span>PATCH<span class="brand-cut">//</span>LIVE</span><sup>®</sup></a>
+   <nav aria-label="Main navigation"><a href="#how">HOW IT WORKS</a><a href="#raid">THE RAID</a><a href="#chat">FOR CHAT</a></nav>
+   <a class="nav-play" href="/duel/"><span class="nav-dot"></span> PLAY THE RAID <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+   <section class="hero" aria-labelledby="landing-title">
+     <div class="hero-eyebrow"><span><b class="live-dot"></b> AN AUDIENCE-AUTHORED ARCADE RAID</span><span>001 — TWITCH × CODEBREAKERS</span></div>
+     <div class="hero-body">
+       <div class="hero-copy">
+         <div class="edition"><span>THE GAME YOUR CHAT</span><i></i><span>WASN'T SUPPOSED TO CONTROL.</span></div>
+         <h1 id="landing-title">CHAT BUILDS<br><em>THE BOSS.</em><br>YOU <span class="outlined">BREAK</span> IT.</h1>
+         <p>Survive three escalating waves while your viewers change your weapons, rewrite the arena, and evolve the monster hunting you.</p>
+         <div class="hero-actions">
+           <a class="primary-action" href="/duel/"><span>PLAY CODEBREAKERS</span><span class="action-arrow" aria-hidden="true">↗</span></a>
+           <a class="text-action" href="#how">SEE HOW IT WORKS <span aria-hidden="true">↘</span></a>
+         </div>
+         <div class="hero-footnote"><span>FREE TO PLAY</span><span class="foot-separator"></span><span>OFFLINE DEMO INCLUDED</span><span class="foot-separator"></span><span>TWITCH CHAT OPTIONAL</span></div>
+       </div>
+       <div class="hero-visual">
+         <div class="visual-topline"><span><b>///</b> ENTITY 001 · THE COMPILER</span><span><b class="live-dot"></b> PROCEDURAL GAME ART</span></div>
+         <div class="visual-stage">
+           <canvas id="landing-teaser" width="1152" height="648" aria-label="Animated illustration of the original Compiler boss arena"></canvas>
+           <div class="visual-scanlines" aria-hidden="true"></div>
+           <div class="visual-corner corner-tl"></div><div class="visual-corner corner-tr"></div><div class="visual-corner corner-bl"></div><div class="visual-corner corner-br"></div>
+           <div class="visual-stamp"><small>FINAL BOSS</small><strong>THE<br>COMPILER.</strong><span>3 FORMS / ∞ OUTCOMES</span></div>
+           <div class="visual-sidecode" aria-hidden="true">P//LIVE — 0001</div>
+         </div>
+         <div class="visual-foot"><span>REAL IN-GAME CREATURE / ANIMATED OFFLINE PREVIEW</span><span>[ 01 / 03 ]</span></div>
+       </div>
+     </div>
+     <div class="hero-bottom"><span>01 / THREE WAVES. ONE EVOLVING NIGHTMARE.</span><a href="#how">SCROLL TO EXPLORE <b>↓</b></a><span>DESIGNED TO BE PLAYED ON STREAM.</span></div>
+   </section>
 
-    <main>
-      <section class="landing-hero" aria-labelledby="landing-title">
-        <div class="landing-hero-kicker"><span><i></i> AN OFFLINE-FIRST CROWD-CONTROLLED BOSS FIGHT</span><span>TWITCH CONNECTION REQUIRES AUTHENTICATION</span><span>01 / REALITY, INTERRUPTED</span></div>
-        <div class="landing-hero-grid">
-          <div class="landing-hero-copy">
-            <span class="landing-edition">PATCH//LIVE / EXPERIMENT 001</span>
-            <h1 id="landing-title">YOUR CHAT<br /><em>BUILDS THE BOSS.</em></h1>
-            <p>Clear the infected system, shatter the Sentinel, then face the evolving Compiler. Three waves of combat. Instant audience powers. A score worth beating.</p>
-            <a class="landing-cta" href="/duel/"><span>↗</span><strong>ENTER THE ARENA<small>FREE OFFLINE DEMO · NO LOGIN REQUIRED</small></strong></a>
-            <div class="landing-proof"><span><b>01</b> BOSS ENCOUNTER</span><i></i><span><b>03</b> ACTS OF CHAOS</span><i></i><span><b>∞</b> WHAT-IFS</span></div>
-          </div>
-          <div class="landing-teaser-frame" aria-label="Animated teaser of The Architect arena">
-            <div class="landing-frame-top"><span>✳ REALITY ENGINE / TEASER</span><span><i></i> OFFLINE PREVIEW</span></div>
-            <div class="landing-teaser"><canvas id="landing-teaser" width="1152" height="648" aria-hidden="true"></canvas><div class="landing-teaser-vignette"></div><div class="teaser-label"><small>THE COMPILER IS ONLINE</small><strong>CHAT POWERS ARE INSTANT. MUTATIONS ARE VOTED ON.</strong></div></div>
-            <div class="landing-frame-bottom"><span>THREE WAVES. FOUR MINUTES.</span><span>RULES ARE TEMPORARY. SCARS ARE NOT.</span></div>
-          </div>
-        </div>
-        <div class="landing-hero-foot"><span>CHAT IS THE BOSS.</span><span>EVERY STREAM BUILDS A DIFFERENT MONSTER.</span><a href="#mechanic">SCROLL TO DISCOVER <b>↓</b></a></div>
-      </section>
+   <div class="marquee-strip" aria-hidden="true"><div>THE CROWD IS THE WEAPON <b>✳</b> REWRITE THE RULES <b>✳</b> SURVIVE THE CODE <b>✳</b> THE CROWD IS THE WEAPON <b>✳</b> REWRITE THE RULES <b>✳</b> SURVIVE THE CODE <b>✳</b></div></div>
 
-      <div class="landing-ticker" aria-hidden="true"><div>LET THE CROWD DECIDE <i>✳</i> BREAK THE RULES <i>✳</i> BREAK THE COMPILER <i>✳</i> LEAVE A SCAR <i>✳</i> LET THE CROWD DECIDE <i>✳</i> BREAK THE RULES <i>✳</i> BREAK THE COMPILER <i>✳</i> LEAVE A SCAR <i>✳</i></div></div>
+   <section class="manifesto" id="how" aria-labelledby="manifesto-title">
+     <div class="section-topline"><span>01 / HOW THE CHAOS WORKS</span><span>ONE STREAMER. A WHOLE CHAT. NO SAFE OUTCOMES.</span></div>
+     <div class="manifesto-intro"><h2 id="manifesto-title">THEY DON'T<br>JUST <span>WATCH.</span><br>THEY <em>INTERFERE.</em></h2>
+      <div class="manifesto-aside"><span class="accent-asterisk">✳</span><p>Every chat message has the power to change the fight. Give the streamer a lifeline. Arm the enemy. Or vote on what the final boss becomes.</p><a href="/duel/">TRY THE GAME <span aria-hidden="true">↗</span></a></div></div>
+     <div class="mechanic-grid">
+       <article><span class="mechanic-index">01 / INTERVENE</span><div class="mechanic-symbol">↗</div><h3>POWER<br>ON DEMAND.</h3><p>Heal the streamer, trigger a shield, or make the boss stronger. Safe chat powers activate instantly with cooldowns.</p><code>!power shield</code></article>
+       <article><span class="mechanic-index">02 / MUTATE</span><div class="mechanic-symbol">⌁</div><h3>REWRITE<br>THE ENEMY.</h3><p>Chat votes on major physics changes. The Compiler transforms into an enemy shaped by the crowd.</p><code>!patch meteor+moon</code></article>
+       <article><span class="mechanic-index">03 / SURVIVE</span><div class="mechanic-symbol">◎</div><h3>EVERY RUN<br>COUNTS.</h3><p>Clear enemies, unlock stronger weapons, beat three waves and fight for a new high score.</p><code>03 WAVES / 01 FINAL BOSS</code></article>
+     </div>
+   </section>
 
-      <section class="landing-section mechanic-section" id="mechanic" aria-labelledby="mechanic-title">
-        <div class="section-meta"><span>02 / THE MECHANIC</span><span>THE OFFLINE DEMO IS CLEARLY LABELLED</span></div>
-        <div class="section-heading"><h2 id="mechanic-title">THE CROWD<br /><em>WRITES THE RULE.</em></h2><p>Help the streamer, armor the monster, reverse controls or fold the arena instantly. Vote when the Compiler must evolve.</p></div>
-        <div class="mechanic-grid"><article><span>01 / TRIGGER</span><strong>CAST INSTANT POWERS.</strong><p>Heal, sabotage, change weapons or reshape the arena immediately. Cooldowns keep the chaos fair.</p></article><article><span>02 / EVOLVE</span><strong>VOTE ON THE MONSTER.</strong><p>Major physics mutations still use one counted vote per viewer. The final enemy becomes what chat creates.</p></article><article><span>03 / SURVIVE</span><strong>FIGHT FOR THE SCORE.</strong><p>Delete minor enemies, earn wave upgrades, break the Sentinel, and beat the Compiler for your personal best.</p></article></div>
-      </section>
+   <section class="raid-section" id="raid" aria-labelledby="raid-title">
+    <div class="section-topline"><span>02 / THE CAMPAIGN</span><span>BUILT FOR REPLAYABILITY, NOT JUST A DEMO.</span></div>
+    <div class="raid-intro"><div><span class="raid-kicker">ENTER THE SYSTEM</span><h2 id="raid-title">THREE WAVES.<br><em>ONE LAST STAND.</em></h2></div><div class="raid-counter"><strong>03</strong><span>STAGES<br>TO SURVIVE</span></div></div>
+    <div class="wave-rows">
+      <div class="wave-row"><span class="wave-index">01 <b>↗</b></span><div><small>BREACH THE DEFENSES</small><h3>SYSTEM BREACH</h3></div><p>Fight Glitchlings and flying Packet Drones. Learn to reflect their attacks, then clear the infection.</p><span class="wave-type">SURVIVAL</span></div>
+      <div class="wave-row"><span class="wave-index">02 <b>↗</b></span><div><small>BREAK THE WALL</small><h3>FIREWALL UPRISING</h3></div><p>Shatter the shielded Sentinel miniboss while the arena fills with fresh threats.</p><span class="wave-type">MINIBOSS</span></div>
+      <div class="wave-row"><span class="wave-index">03 <b>↗</b></span><div><small>FACE WHAT CHAT CREATED</small><h3>FINAL COMPILATION</h3></div><p>The Compiler inherits the crowd's mutations. Reflect its attacks and finish what chat started.</p><span class="wave-type">FINAL BOSS</span></div>
+    </div>
+   </section>
 
-      <section class="landing-section encounter-section" id="encounter" aria-labelledby="encounter-title">
-        <div class="section-meta"><span>03 / THE ENCOUNTER</span><span>IGNITION → FRACTURE → COLLAPSE</span></div>
-        <div class="encounter-layout"><div><h2 id="encounter-title">MEET<br /><em>THE COMPILER.</em></h2><p>A colossal final boss written by your audience. First survive the Glitchlings, Packet Drones, and the Sentinel miniboss. Each chat decision rewrites the raid.</p></div><div class="encounter-stamp"><span>03</span><small>WAVES<br />TO BREAK<br />THE SYSTEM</small></div></div>
-        <div class="act-list"><div><span>WAVE 01</span><strong>SYSTEM BREACH</strong><small>Delete 12 Glitchlings and Packet Drones while chat triggers its first powers.</small></div><div><span>WAVE 02</span><strong>FIREWALL UPRISING</strong><small>Break the Sentinel miniboss and earn another weapon upgrade.</small></div><div><span>WAVE 03</span><strong>FINAL COMPILATION</strong><small>Defeat a Compiler carrying the major mutations chosen by your audience.</small></div></div>
-      </section>
-
-      <section class="landing-close"><span>[ A GAME FOR THE STREAMER. A GAME WRITTEN BY THE CROWD. ]</span><h2>ENTER<br /><em>THE ARENA.</em><b>✳</b></h2><a class="landing-close-cta" href="/duel/">ENTER THE THREE-WAVE RAID ↗</a></section>
-    </main>
-
-    <footer class="landing-footer"><span>PATCH<span class="slash">//</span>LIVE <small>© 2026</small></span><span>A LIVE EXPERIMENT / MADE FOR TWITCH</span><span>OFFLINE DEMO · LIVE TWITCH REQUIRES AUTH</span></footer>
-  </div>
-  <script type="module" src="/src/landing.js"></script>
+   <section class="chat-section" id="chat" aria-labelledby="chat-title">
+     <div class="chat-left"><span class="chat-label">03 / THE AUDIENCE EXPERIENCE</span><h2 id="chat-title">YOUR STREAM.<br>THEIR <em>CHAOS.</em></h2><p>Make your chat part of the show. One command can save the run. Another can turn the final boss into a nightmare.</p><a href="/duel/" class="chat-cta">START THE RAID <span aria-hidden="true">↗</span></a></div>
+     <div class="chat-terminal" aria-label="Examples of supported Twitch commands">
+       <div class="terminal-head"><span><i></i> CHANNEL CHAT / COMMAND PREVIEW</span><span>!POWER / !PATCH</span></div>
+       <div class="terminal-body"><div><small>VIEWER_01</small><code>!power shield</code><span class="tag good">+ PROTECT</span></div><div><small>CHAOSBOT</small><code>!power armor</code><span class="tag bad">+ SABOTAGE</span></div><div><small>NULL_WITCH</small><code>!patch meteor+moon</code><span class="tag vote">+ VOTE</span></div></div>
+       <div class="terminal-bottom">ILLUSTRATIVE COMMANDS · NOT LIVE CHAT</div>
+     </div>
+   </section>
+   <section class="final-call"><span>BUILT FOR THE STREAMER. CONTROLLED BY THE CROWD.</span><h2>READY TO<br><em>BREAK THE GAME?</em></h2><a href="/duel/">ENTER THE ARENA <span aria-hidden="true">↗</span></a></section>
+  </main>
+  <footer class="footer"><a class="brand" href="#top">✳ PATCH//LIVE</a><span>ORIGINAL GAME / © 2026</span><span>TWITCH REQUIRES AUTHORIZATION · OFFLINE DEMO LABELLED</span><a href="#top">BACK TO TOP ↑</a></footer>
+ </div>
+ <script type="module" src="/src/landing.js"></script>
 </body>
 </html>
