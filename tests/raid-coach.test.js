@@ -9,13 +9,13 @@ const example=()=>({
 });
 
 test('real combat gets two shields and a grace window, with scaled but bounded damage',()=>{
- assert.equal(RAID_BALANCE.startingShields,2);
+ assert.equal(RAID_BALANCE.startingShields,3);
  assert.ok(RAID_BALANCE.openingGraceSeconds>=2);
  assert.ok(RAID_BALANCE.hitInvulnerabilitySeconds>=1.25);
- assert.ok(RAID_BALANCE.waveHeal>=20);
- assert.deepEqual([0,1,2].map(projectileDamage),[11,13,15]);
- assert.equal(projectileDamage(-2),11);
- assert.equal(projectileDamage(100),15);
+ assert.equal(RAID_BALANCE.waveHeal,30);
+ assert.deepEqual([0,1,2].map(projectileDamage),[9,12,14]);
+ assert.equal(projectileDamage(-2),9);
+ assert.equal(projectileDamage(100),14);
  assert.ok(RAID_BALANCE.contactDamage<projectileDamage(0));
 });
 
