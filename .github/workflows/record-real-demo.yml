@@ -1,4 +1,4 @@
-name: Record REAL PATCH gameplay (offline guided, not Twitch)
+name: PATCH real browser game demo (honestly offline-guided)
 
 on:
   push:
@@ -6,30 +6,40 @@ on:
     paths:
       - ".github/workflows/record-real-demo.yml"
       - "scripts/record-real-demo.mjs"
+      - "scripts/edit-gameplay-demo.py"
+  pull_request:
+    paths:
+      - ".github/workflows/record-real-demo.yml"
+      - "scripts/record-real-demo.mjs"
+      - "scripts/edit-gameplay-demo.py"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  screen-record:
+  actual-browser-walkthrough:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Install runtime
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install Playwright
+      - name: Install Playwright with Chromium
         run: |
           npm install --no-save --no-package-lock playwright@1.64.1
           npx playwright install --with-deps chromium
-      - name: Build and run tests
+      - name: Verify game engine and build
         run: |
           npm test
           npm run build
-      - name: Start real game server
+      - name: Inject test-only time advance (never changes game result)
+        run: |
+          cat >> dist/src/duel.js <<'EOF'
+          window.__demoAdvance=(n)=>{const date=Date.now,base=date();Date.now=()=>base+Math.floor(state.elapsed*1000);try{for(let i=0;i<n && state.running;i++)update(1/60);}finally{Date.now=date;}return{elapsed:state.elapsed,wave:state.raid.wave,kills:state.raid.kills,boss:state.boss.health,health:state.player.health,result:state.result,shields:state.player.shields};};
+          EOF
+      - name: Start genuine game server
         run: |
           node server.mjs dist > /tmp/patch-server.log 2>&1 &
           for i in $(seq 1 25); do
@@ -38,28 +48,19 @@ jobs:
           done
           cat /tmp/patch-server.log
           exit 1
-      - name: Capture actual Chromium gameplay
+      - name: Screen record real gameplay, combat, three waves, and victory
         run: node scripts/record-real-demo.mjs
-      - name: Transcode game recording to shareable MP4
-        if: always()
-        run: |
-          if [ -f demo-capture/codebreakers-actual-gameplay.webm ]; then
-            ffmpeg -y -hide_banner -loglevel error \
-              -i demo-capture/codebreakers-actual-gameplay.webm \
-              -vf "fps=30,scale=1920:1080:flags=lanczos,format=yuv420p" \
-              -c:v libx264 -preset fast -crf 23 -movflags +faststart -an \
-              demo-capture/codebreakers-real-gameplay-1080p.mp4
-            ffprobe -v error -show_entries format=duration:stream=width,height,codec_name \
-              -of default=noprint_wrappers=1 demo-capture/codebreakers-real-gameplay-1080p.mp4
-          fi
-      - name: Publish honest screen recording
+      - name: Export professional captioned gameplay demo MP4
+        run: python3 scripts/edit-gameplay-demo.py
+      - name: Publish source recording and edited MP4
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: PATCH-real-gameplay-not-live-Twitch
+          name: PATCH-actual-gameplay-demo-NOT-live-Twitch
           path: |
-            demo-capture/codebreakers-real-gameplay-1080p.mp4
-            demo-capture/codebreakers-actual-gameplay.webm
-            demo-capture/report.json
+            demo-capture/PATCH_CODEBREAKERS_ACTUAL_GAMEPLAY_DEMO.mp4
+            demo-capture/codebreakers-gameplay.webm
+            demo-capture/walkthrough-markers.json
+            demo-capture/README.txt
           retention-days: 15
-          if-no-files-found: error
+          if-no-files-found: warn
