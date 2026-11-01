@@ -86,7 +86,7 @@ export function applyPower(state,id,authors=[]){
     case'medkit':p.health=Math.min(100,p.health+24);break;
     case'shield':p.shields=Math.min(2,(p.shields||0)+1);break;
     case'lance':case'cannon':case'vampire':state.weapon=id;state.weaponUntil=state.elapsed+power.duration;break;
-    case'overtime':state.duration=Math.min(90,state.duration+10);description='Clock extended by 10s';break;
+    case'overtime':{const before=state.duration;state.duration=Math.min(300,state.duration+10);description='Clock extended by '+Math.max(0,state.duration-before)+'s';break;}
     case'bossheal':b.health=Math.min(b.maxHealth,b.health+35);break;
     case'armor':{const gain=Math.min(45,500-b.maxHealth);b.maxHealth+=gain;b.health+=gain;break;}
     case'timecut':state.duration=Math.max(state.elapsed+15,Math.max(25,state.duration-7));break;

@@ -90,3 +90,34 @@ main{max-width:1920px;margin:0 auto;padding:0 clamp(18px,3.1vw,66px)}.event-top{
  .boss-gene{padding:4px}
  .boss-gene strong,.boss-gene small{font-size:8px}
 }
+
+
+/* CODEBREAKERS / three-stage campaign UI, live score and high-score results. */
+.event-name h1{font-size:clamp(60px,6.6vw,125px)}
+.campaign-hud{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
+.campaign-hud #round-indicator{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.campaign-hud #wave-label{background:#dfff83;color:#101a1a;padding:5px 7px;font:700 10px 'DM Mono',monospace;white-space:nowrap}
+.score-hud{display:flex;flex-direction:column;align-items:center;gap:1px;padding:0 13px;border-left:1px solid #ffffff28;border-right:1px solid #ffffff28;min-width:105px}
+.score-hud b{font:800 20px 'Barlow Condensed',sans-serif;letter-spacing:1.2px;color:#eaff68;line-height:1}
+.score-hud small{font:500 9px 'DM Mono',monospace;color:#8c9295;letter-spacing:1.2px}
+.result-screen .result-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(570px,100%);gap:10px;margin-bottom:10px}
+.result-screen .result-stats>div{min-width:0}
+.result-screen .result-stats strong{font-size:clamp(21px,2.4vw,33px);white-space:nowrap;color:#f3f4e9}
+.result-screen .result-stats span{font-size:8px;letter-spacing:.3px}
+@media(max-width:920px){
+ .key-guide{display:none}
+ .campaign-hud #round-indicator{font-size:9px}
+ .score-hud{min-width:82px;padding:0 8px}
+}
+@media(max-width:650px){
+ .event-name h1{font-size:clamp(42px,12.7vw,72px)}
+ .campaign-hud #round-indicator{max-width:135px;font-size:8px}
+ .campaign-hud #wave-label{font-size:8px;padding:4px}
+ .score-hud{min-width:70px;padding:0 5px}
+ .score-hud b{font-size:17px}
+ .score-hud small{font-size:7px}
+ .stage-bottom .combo-info{max-width:38%;overflow:hidden;text-overflow:ellipsis}
+ .result-screen .result-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 8px;margin-bottom:5px}
+ .result-screen .result-stats strong{font-size:21px}
+ .result-screen .result-stats span{font-size:7px;line-height:1.3}
+}

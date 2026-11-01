@@ -4,6 +4,7 @@ import { demoChatEvent } from './demo.js';
 import { BOSS_FORMS, evolveArchitect, bossRuleDynamics } from './boss-evolution.js';
 import { drawCodexMonster, drawCompilerStage } from './codex-monster.js';
 import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, disconnectToken, redirectUri } from './twitch.js';
+import { RAID_WAVES, createCampaign, tickCampaign, chooseRaidTarget, applyRaidHit, canAdvanceCampaign, nextRaidWave, finishCampaign, rankCampaign } from './raid-campaign.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
@@ -21,7 +22,8 @@ let state;
 function makeState(){
   round=new AudienceRound(ROUND_MS);
   return {
-    running:false, guided:false, finished:false, elapsed:0, duration:60,
+    running:false, guided:false, finished:false, elapsed:0, duration:240, raid:createCampaign(),
+    cooldownUsers:new Map(), cooldownPowers:new Map(), nextInstant:0,
     player:{x:316,y:FLOOR-32, vx:0, health:100, shields:0, invuln:0, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
     boss:{x:BOSS_X,y:BOSS_Y,maxHealth:460,health:460,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
     attacks:[], refractions:[], particles:[], ambient:[], nextAttack:1.3,
@@ -35,6 +37,7 @@ state=makeState();
 
 const COMMANDS=POWERS;
 const TABS=['ally','enemy','arena','physics'];
+const CLOCK={individual:7,effect:8,global:1.1};
 let activeTab='ally';
 let actualLive=false;
 
@@ -64,16 +67,42 @@ function synth(freq,duration=.09,type='triangle',vol=.06){
   }catch{}
 }
 function acceptChatVote(evt,origin='local'){
-  if(!state.running)return {ok:false,message:'START THE FIGHT FIRST'};
+  if(!state.running)return {ok:false,message:'START THE RAID FIRST'};
   const p=canonicalAudienceUser(evt);
-  if(!p)return {ok:false,message:'INVALID / USE !power medkit OR !patch meteor+moon'};
-  if(!round.vote(p.userId,p,Date.now(),p.name))return {ok:false,message:'VOTE ALREADY CAST, OR ROUND CLOSED'};
+  if(!p)return {ok:false,message:'USE !power shield (instant) OR !patch meteor+moon (evolution vote)'};
+  if(p.type==='power'){
+    const now=state.elapsed;
+    if(now<(state.cooldownUsers.get(p.userId)||0))return {ok:false,message:'VIEWER COOLDOWN — WAIT BEFORE CASTING AGAIN'};
+    if(now<(state.cooldownPowers.get(p.id)||0))return {ok:false,message:'ABILITY RECHARGING — CHOOSE ANOTHER'};
+    if(now<state.nextInstant)return {ok:false,message:'GLOBAL CAST COOLDOWN — TRY AGAIN'};
+    state.cooldownUsers.set(p.userId,now+CLOCK.individual);
+    state.cooldownPowers.set(p.id,now+CLOCK.effect);
+    state.nextInstant=now+CLOCK.global;
+    const effect=applyPower(state,p.id,[p.name]);
+    if(!effect)return {ok:false,message:'EFFECT FAILED'};
+    state.authors.add(p.name);
+    state.history.push({power:effect.id,authors:[p.name],side:effect.side});
+    state.hudText=effect.name.toUpperCase();
+    state.hudSmall=p.name.toUpperCase()+' / '+(SIDE_INFO[effect.side]?.label||'AUDIENCE');
+    state.shake=5;state.flashes=.11;
+    impact(effect.name.toUpperCase()+'!',effect.side==='ally'?'':'pink');
+    displayFeed(p.name.toUpperCase()+' / '+(origin==='twitch'?'TWITCH':'OFFLINE'),
+      'INSTANT '+effect.name+' · '+effect.description,effect.side==='ally'?'good':'hot');
+    sparks(effect.side==='ally'?state.player.x:state.boss.x,
+      effect.side==='ally'?state.player.y:state.boss.y,
+      SIDE_INFO[effect.side].color,18);
+    state.points+=15;
+    synth(effect.side==='ally'?570:154,.17,'sawtooth',.05);
+    updateUI();
+    return {ok:true,message:'INSTANT '+effect.name+' ACTIVATED'};
+  }
+  if(!round.vote(p.userId,p,Date.now(),p.name))return {ok:false,message:'EVOLUTION VOTE ALREADY CAST OR ROUND CLOSED'};
   state.sampleVotes++;
-  displayFeed(p.name.toUpperCase()+' / '+(origin==='twitch'?'TWITCH':'OFFLINE'),p.id.toUpperCase().replace('+',' + '),p.type==='power'?'good':'hot');
+  displayFeed(p.name.toUpperCase()+' / '+(origin==='twitch'?'TWITCH':'OFFLINE'),p.id.toUpperCase(),'hot');
   const winner=round.leader();
-  $('next-effect').textContent=winner?'LEADING · '+winner.id.toUpperCase().replace('+',' + '):'AWAITING CHAT';
+  $('next-effect').textContent=winner?'EVOLUTION · '+winner.id.toUpperCase():'AWAITING PATCH VOTES';
   updateVoteUI();synth(280,.035,'square',.017);
-  return {ok:true,message:(origin==='twitch'?'TWITCH VOTE':'LOCAL TEST ACCEPTED')+' · '+p.id.toUpperCase()};
+  return {ok:true,message:'EVOLUTION VOTE ACCEPTED · '+p.id.toUpperCase()};
 }
 function castLocalVote(name,command){
   if(actualLive)return {ok:false,message:'OFFLINE TEST VOTING IS DISABLED WHILE TWITCH IS LIVE'};
@@ -150,48 +179,60 @@ function buildEffectButtons(){
     b.setAttribute('aria-selected',String(b.dataset.tab===activeTab));
   });
   $('power-command').textContent=activeTab==='physics'?'!patch meteor+moon':'!power '+(list[0]?.id||'medkit');
+  $('vote-caption').textContent=activeTab==='physics'?'EVOLUTION VOTES / ONE PER VIEWER':'INSTANT POWERS / COOLDOWN LIMITED';
   updateVoteUI();
 }
 const demoVotes=[
-  {t:.5,name:'guardian_fox',command:'!power lance'},
-  {t:1,name:'mercy_main',command:'!power lance'},
-  {t:8.4,name:'chaoswitch',command:'!power armor'},
-  {t:8.9,name:'raid_boss',command:'!power armor'},
-  {t:16.5,name:'night_shift',command:'!power squeeze'},
-  {t:17,name:'pixel_fiend',command:'!power squeeze'},
-  {t:24.6,name:'orbitwitch',command:'!patch meteor+moon'},
-  {t:25.1,name:'void_runner',command:'!patch moon+meteor'},
-  {t:32.5,name:'clockbreaker',command:'!power timecut'},
-  {t:33.0,name:'troll_9000',command:'!power timecut'},
-  {t:40.5,name:'medic_01',command:'!power medkit'},
-  {t:41.0,name:'modteam',command:'!power medkit'}
+  {t:2,name:'guardian_fox',command:'!power lance'},
+  {t:9,name:'chaoswitch',command:'!power armor'},
+  {t:17,name:'night_shift',command:'!power squeeze'},
+  {t:25,name:'orbitwitch',command:'!patch meteor+moon'},
+  {t:25.8,name:'void_runner',command:'!patch moon+meteor'},
+  {t:34,name:'clockbreaker',command:'!power timecut'},
+  {t:43,name:'medic_01',command:'!power medkit'},
+  {t:53,name:'pixel_fiend',command:'!patch blackout+magnet'},
+  {t:53.8,name:'null_runner',command:'!patch blackout+magnet'},
+  {t:63,name:'glitch_baron',command:'!power frenzy'},
+  {t:75,name:'shield_mate',command:'!power shield'},
+  {t:87,name:'mercy_main',command:'!power cannon'},
+  {t:103,name:'raid_boss',command:'!power bossheal'}
 ];
 function start(guided){
   if(guided&&actualLive){displayFeed('SYSTEM','DISCONNECT TWITCH BEFORE RUNNING AN OFFLINE SHOWCASE');return;}
   state=makeState();state.guided=!!guided;state.running=true;
+  state.duration=guided?165:240;
   keys.clear();round=new AudienceRound(guided?8000:actualLive?20000:ROUND_MS);
   $('start-screen').classList.add('hidden');
   $('result-screen').classList.add('hidden');
   $('feed').replaceChildren();$('next-effect').textContent='AWAITING CHAT';
-  $('round-indicator').textContent=guided?'OFFLINE / GUIDED SHOWCASE':'CHAPTER I — FIRST STRIKE';
+  $('round-indicator').textContent='WAVE 01 / '+RAID_WAVES[0].name;
+  $('wave-label').textContent='01 / 03';
+  $('score-value').textContent='000000';
   $('auto-chaos').textContent=guided?'AUTO CHAT RUNNING':'AUTO CHAT DEMO';
   activeTab='ally';buildEffectButtons();
-  displayFeed('SYSTEM / OFFLINE','ARENA ARMED. ALL CHAT EVENTS HERE ARE LOCAL SIMULATIONS.','good');
+  displayFeed('SYSTEM / '+(actualLive?'TWITCH':'OFFLINE'),'THREE-WAVE RAID ARMED. POWER COMMANDS ARE INSTANT; PATCHES VOTE ON EVOLUTION.','good');
   updateVoteUI();canvas.focus();synth(380,.22,'sawtooth',.045);
 }
 function finish(won){
   if(state.finished)return;
   state.running=false;state.finished=true;
   state.result=won?'VICTORY':'DEFEAT';
+  const total=finishCampaign(state.raid,state.points+(won?2500:0));
+  let previous=0;
+  try{previous=Number(localStorage.getItem('patchlive_raid_best'))||0;if(total>previous)localStorage.setItem('patchlive_raid_best',String(total));}catch{}
+  $('result-best').textContent=Math.max(previous,total).toLocaleString();
+  $('result-wave').textContent=String(state.raid.highestWave).padStart(2,'0');
+  $('result-kills').textContent=state.raid.kills.toLocaleString();
+  $('result-rank').textContent=rankCampaign(state.raid,won);
   $('result-screen').classList.remove('hidden');
-  $('result-label').textContent=won?'THE AUDIENCE BUILT IT. YOU BEAT IT.':'THE CROWD WINS THIS ROUND';
-  $('result-title').innerHTML=won?'THE MONSTER<br/><em>WAS YOURS.</em>':'THEY<br/><em>BROKE YOU.</em>';
+  $('result-label').textContent=won?'SYSTEM CLEARED · THREE WAVES SURVIVED':'RAID ENDED · TRY AGAIN';
+  $('result-title').innerHTML=won?'CODE<br/><em>BREAKER.</em>':'SYSTEM<br/><em>FAILURE.</em>';
   $('result-description').textContent=won?
-    'You reflected '+state.reflects+' community-authored attacks. Built by '+([...state.authors].slice(0,3).join(', ')||'your community')+'. You turned their weapons against them.':
-    'Every attack was designed by your community. Restart and turn their ideas against them.';
+    'Three waves cleared · '+state.raid.kills+' minor enemies defeated · '+state.reflects+' reflections. Your community built the challenge; you survived it.':
+    'You reached Wave '+state.raid.highestWave+' and defeated '+state.raid.kills+' minor enemies. Run it back and beat your best.';
   $('result-reflects').textContent=state.reflects;
   $('result-authors').textContent=state.authors.size;
-  $('result-score').textContent=state.points;
+  $('result-score').textContent=total.toLocaleString();
   const recap=$('boss-dna-recap');
   recap.replaceChildren();
   for(const decision of state.history.slice(-5)){
@@ -224,6 +265,23 @@ function spawnAttack(){
   state.hudSmall='READ THE RED TELEGRAPH. THEN REFLECT.';
 }
 
+function advanceWave(){
+  if(!canAdvanceCampaign(state.raid))return;
+  const result=nextRaidWave(state.raid);
+  if(!result)return;
+  state.player.health=Math.min(100,state.player.health+16);
+  state.player.shields=Math.min(2,state.player.shields+1);
+  state.weapon=state.raid.wave===1?'lance':'cannon';
+  state.weaponUntil=state.elapsed+14;
+  state.attacks=[];state.refractions=[];
+  state.nextAttack=state.elapsed+2;
+  state.shake=14;state.flashes=.22;
+  state.hudText=result;state.hudSmall='STAGE CLEARED · BONUS HEALTH +16 · EQUIPMENT UPGRADED';
+  impact('WAVE '+(state.raid.wave+1)+'!');
+  displayFeed('CAMPAIGN',result+' · EQUIPMENT UPGRADED','good');
+  sparks(state.player.x,state.player.y,'#eaff68',40);
+  synth(490,.36,'triangle',.08);
+}
 function parry(){
   const p=state.player;
   if(!state.running||p.parryCooldown>0)return;
@@ -233,8 +291,10 @@ function parry(){
   if(viable.length){
     const attack=viable[0];
     attack.state='reflected';attack.reflected=true;
-    state.refractions.push({x:attack.x,y:attack.y,originX:attack.x,originY:attack.y,t:0,duration:.35,hit:false,color:'#edff73'});
-    state.reflects++;state.combo++;state.points+=100+state.combo*30;
+    const target=chooseRaidTarget(state.raid,attack.x);
+    state.refractions.push({x:attack.x,y:attack.y,originX:attack.x,originY:attack.y,t:0,duration:.35,hit:false,color:'#edff73',
+      targetId:state.raid.wave===2&&!target?'compiler':target?.id||'none'});
+    state.reflects++;state.raid.perfectReflections++;state.combo++;state.points+=100+state.combo*30;
     state.hitstop=.09;state.shake=14;state.flashes=.17;
     state.boss.hitFlash=.36;state.boss.weakWindow=1.1;
     p.health=clamp(p.health+(state.weapon==='vampire'&&state.elapsed<state.weaponUntil?10:2),0,100);
@@ -245,8 +305,15 @@ function parry(){
     for(let i=0;i<24;i++)sparks(p.x,p.y,'#eaff6e');
     synth(820,.15,'triangle',.08);
   }else{
-    state.combo=0;state.hudText='TOO EARLY';state.hudSmall='REFLECT WHEN THE ATTACK ENTERS YOUR RANGE.';
-    synth(110,.08,'sawtooth',.02);
+    const mob=state.raid.enemies.find(e=>e.kind==='glitch'&&Math.abs(e.x-p.x)<110);
+    if(mob){
+      const hit=applyRaidHit(state.raid,mob.id,48);
+      if(hit?.killed){state.points+=90;state.combo++;impact('GLITCH DELETED!');sparks(mob.x,mob.y,'#eaff68',20);}
+      if(canAdvanceCampaign(state.raid))advanceWave();
+    }else{
+      state.combo=0;state.hudText='TOO EARLY';state.hudSmall='REFLECT A PROJECTILE OR STRIKE A NEARBY GLITCHLING.';
+      synth(110,.08,'sawtooth',.02);
+    }
   }
 }
 function dash(){
@@ -256,10 +323,10 @@ function dash(){
   for(let i=0;i<16;i++)sparks(p.x,p.y,'#c8d4ff');
   synth(260,.12,'sawtooth',.035);
 }
-function damagePlayer(){
+function damagePlayer(amount=17){
   const p=state.player;if(p.invuln>0||!state.running)return;
   if((p.shields||0)>0){p.shields--;p.invuln=.8;state.shake=9;state.hudText='SHIELD SAVED YOU';impact('AEGIS BLOCK');displayFeed('DEFENSE','AUDIENCE SHIELD ABSORBED AN ATTACK','good');return;}
-  p.health=Math.max(0,p.health-17);p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
+  p.health=Math.max(0,p.health-amount);state.raid.hitCount++;p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
   state.hudText='DIRECT HIT';state.hudSmall='THE AUDIENCE LANDED THEIR ATTACK.';
   impact('DIRECT HIT','pink');
   for(let i=0;i<40;i++)sparks(p.x,p.y,'#ff597a');
@@ -283,6 +350,8 @@ function update(dt){
     if(next){
       const dist=next.x-p.x;p.vx+=(clamp(dist*4,-330,330)-p.vx)*Math.min(1,dt*9);
       if(next.state==='falling'&&Math.abs(next.x-p.x)<90&&Math.abs(next.y-p.y)<107&&p.parryCooldown<=0)parry();
+      else if(!state.attacks.some(a=>a.state==='falling'&&Math.abs(a.x-p.x)<130&&Math.abs(a.y-p.y)<170)
+        &&state.raid.enemies.some(e=>e.kind==='glitch'&&Math.abs(e.x-p.x)<95)&&p.parryCooldown<=0)parry();
     }else p.vx+=(0-p.vx)*dt*6;
   }else{
     let input=(keys.has('right')?1:0)-(keys.has('left')?1:0);
@@ -300,6 +369,13 @@ function update(dt){
   }
   if(Date.now()>=round.endsAt)resolveVote();
   if(state.elapsed>=state.nextAttack)spawnAttack();
+  const mobEvents=tickCampaign(state.raid,dt,p.x,{guided:state.guided});
+  if(mobEvents.collision)damagePlayer(6);
+  for(const mobShot of mobEvents.shots)state.attacks.push({
+    x:mobShot.x,y:122,t:0,windup:.95,speed:440+state.raid.wave*35,
+    kind:'bolt',r:25,state:'warning',name:mobShot.name,reflected:false
+  });
+  if(canAdvanceCampaign(state.raid))advanceWave();
   for(const a of state.attacks){
     a.t+=dt;
     if(a.state==='warning'&&a.t>=a.windup){a.state='falling';a.y=145;state.shake=Math.max(2,state.shake);}
@@ -315,39 +391,68 @@ function update(dt){
   for(const bolt of state.refractions){
     bolt.t+=dt;
     const t=clamp(bolt.t/bolt.duration,0,1);
-    bolt.x=bolt.originX+(b.x-bolt.originX)*t;
-    bolt.y=bolt.originY+(b.y-bolt.originY)*t*(2-t);
+    const raid=state.raid;
+    const mob=raid.enemies.find(e=>e.id===bolt.targetId);
+    const target=mob||(bolt.targetId==='sentinel'?raid.guardian:null);
+    const tx=target?.x??b.x,ty=target?.y??b.y;
+    bolt.x=bolt.originX+(tx-bolt.originX)*t;
+    bolt.y=bolt.originY+(ty-bolt.originY)*t*(2-t);
     if(t>=1&&!bolt.hit){
       bolt.hit=true;
-      const power=14+Math.min(9,state.combo*2)+(b.weakWindow>0?5:0)+(state.weapon==='cannon'&&state.elapsed<state.weaponUntil?14:0);
-      b.health=Math.max(0,b.health-power);
-      b.hitFlash=.32;b.morphPulse=.3;state.shake=12;
-      for(let i=0;i<32;i++)sparks(b.x,b.y,'#eaff6e');
-      if(b.health<=0){finish(true);break;}
+      const power=24+Math.min(12,state.combo*2)+(b.weakWindow>0?4:0)+(state.weapon==='cannon'&&state.elapsed<state.weaponUntil?17:0);
+      if(bolt.targetId==='compiler'&&raid.wave===2){
+        b.health=Math.max(0,b.health-Math.max(1,Math.round(power*.68)));
+        b.hitFlash=.32;b.morphPulse=.27;state.shake=12;
+        sparks(b.x,b.y,'#eaff6e',30);
+        if(b.health<=0){finish(true);break;}
+      }else if(target){
+        const hit=applyRaidHit(raid,bolt.targetId,power);
+        if(hit?.killed){
+          state.points+=hit.target==='guardian'?500:75;
+          impact(hit.target==='guardian'?'SENTINEL SHATTERED!':'ENEMY DELETED!');
+          displayFeed('RAID / KILL',hit.target.toUpperCase()+' DEFEATED','good');
+        }
+        sparks(tx,ty,'#d5ff8c',25);
+        if(canAdvanceCampaign(raid))advanceWave();
+      }
     }
   }
   state.refractions=state.refractions.filter(v=>!v.hit);
   for(const pt of state.particles){pt.x+=pt.vx*dt;pt.y+=pt.vy*dt;pt.vx*=.98;pt.vy*=.98;pt.life-=dt;}
   state.particles=state.particles.filter(pt=>pt.life>0).slice(-200);
-  if(state.elapsed>=state.duration)finish(b.health<=0);
+  if(state.elapsed>=state.duration)finish(state.raid.wave===2&&b.health<=0);
   updateUI();
 }
 function updateUI(){
   const timeLeft=Math.ceil(Math.max(0,state.duration-state.elapsed));
   $('game-clock').textContent=String(Math.floor(timeLeft/60)).padStart(2,'0')+':'+String(timeLeft%60).padStart(2,'0');
-  const phase=state.boss.evolution+1;
-  $('round-indicator').textContent=state.guided?'GUIDED / OFFLINE':'CHAPTER '+['I','II','III','IV'][Math.min(3,phase-1)]+' — '+(state.boss.form==='PRIME'?'FIRST STRIKE':state.boss.form);
-  $('boss-name').textContent=({PRIME:'THE COMPILER',CATACLYSM:'STACK OVERFLOW',SINGULARITY:'RECURSIVE ENTITY',ECLIPSE:'NULL DEVOURER'})[state.boss.form]||'THE COMPILER';
-  $('boss-percent').textContent=Math.ceil(state.boss.health)+' / '+state.boss.maxHealth+' HP';
-  $('boss-bar-fill').style.width=100*state.boss.health/state.boss.maxHealth+'%';
+  const raid=state.raid,wave=RAID_WAVES[raid.wave];
+  $('round-indicator').textContent=wave.name+(state.guided?' · OFFLINE GUIDED':'');
+  $('wave-label').textContent=String(raid.wave+1).padStart(2,'0')+' / 03';
+  $('score-value').textContent=String(Math.floor(state.points+raid.score)).padStart(6,'0');
+  if(raid.wave===0){
+    $('boss-name').textContent='BREACH / DELETE HOSTILES';
+    $('boss-percent').textContent=raid.waveKills+' / '+wave.goal+' ENEMIES';
+    $('boss-bar-fill').style.width=100*Math.min(1,raid.waveKills/wave.goal)+'%';
+  }else if(raid.wave===1){
+    $('boss-name').textContent='THE SENTINEL / FIREWALL';
+    $('boss-percent').textContent=Math.ceil(raid.guardian?.hp||0)+' / 300 HP';
+    $('boss-bar-fill').style.width=100*Math.max(0,(raid.guardian?.hp||0)/300)+'%';
+  }else{
+    $('boss-name').textContent=({PRIME:'THE COMPILER',CATACLYSM:'STACK OVERFLOW',SINGULARITY:'RECURSIVE ENTITY',ECLIPSE:'NULL DEVOURER'})[state.boss.form]||'THE COMPILER';
+    $('boss-percent').textContent=Math.ceil(state.boss.health)+' / '+state.boss.maxHealth+' HP';
+    $('boss-bar-fill').style.width=100*state.boss.health/state.boss.maxHealth+'%';
+  }
   $('health-number').textContent=Math.ceil(state.player.health);
   $('health-fill').style.width=state.player.health+'%';
   $('combo-info').textContent=state.combo+' × REFLECT · '+(state.weapon==='reflect'?'STANDARD':state.weapon.toUpperCase());
-  $('perk-ribbon').textContent=['SHIELDS '+(state.player.shields||0),...Object.keys(state.modifiers||{}).filter(k=>hasPower(state,k)).map(k=>k.toUpperCase()),...(state.weapon!=='reflect'?['WEAPON '+state.weapon.toUpperCase()]:[])].join(' · ');
-  $('combat-label').querySelector('small').textContent=state.hudSmall;
-  $('combat-label').querySelector('strong').textContent=state.hudText;
+  $('perk-ribbon').textContent=['SHIELDS '+(state.player.shields||0),'KILLS '+raid.kills,
+    ...Object.keys(state.modifiers||{}).filter(k=>hasPower(state,k)).map(k=>k.toUpperCase()),
+    ...(state.weapon!=='reflect'?['WEAPON '+state.weapon.toUpperCase()]:[])].join(' · ');
+  $('combat-label').querySelector('small').textContent=raid.transition>0?wave.sub:state.hudSmall;
+  $('combat-label').querySelector('strong').textContent=raid.transition>0?'WAVE '+(raid.wave+1)+' // '+wave.name:state.hudText;
   const remain=state.running?round.remaining():Math.ceil(round.durationMs/1000);
-  $('vote-time').innerHTML=String(remain).padStart(2,'0')+'<span>S</span>';
+  $('vote-time').textContent=String(remain).padStart(2,'0')+'S';
   $('vote-progress').style.width=clamp(100*(1-remain/(round.durationMs/1000)),0,100)+'%';
 }
 function drawBackground(time){
@@ -378,6 +483,7 @@ function drawBackground(time){
  }
 }
 function drawBoss(time){
+ if(state.raid.wave!==2)return;
  const b=state.boss;ctx.save();
  b.frenzied=hasPower(state,'frenzy');
  if(b.morphPulse>0)ctx.translate(random(-b.morphPulse*4,b.morphPulse*4),random(-b.morphPulse*4,b.morphPulse*4));
@@ -385,6 +491,53 @@ function drawBoss(time){
  drawCodexMonster(ctx,b,time);ctx.restore();
  if(b.hitFlash>0){ctx.save();ctx.globalAlpha=b.hitFlash*.7;ctx.strokeStyle='#dfff83';ctx.lineWidth=5;
  ctx.beginPath();ctx.arc(b.x,b.y,155+(1-b.hitFlash)*55,0,Math.PI*2);ctx.stroke();ctx.restore();}
+}
+function drawRaidEnemies(time){
+ const raid=state.raid;
+ for(const e of raid.enemies){
+  ctx.save();ctx.translate(e.x,e.y);
+  const blink=e.hitFlash>0;
+  if(e.kind==='glitch'){
+    const step=Math.sin(time*14+e.x*.02)*7;
+    ctx.shadowColor='#bbff87';ctx.shadowBlur=blink?23:10;
+    ctx.strokeStyle=blink?'#fffcd7':'#b7ff8b';ctx.lineWidth=3;
+    ctx.fillStyle='#1c3030';
+    ctx.beginPath();ctx.moveTo(-26,-29);ctx.lineTo(19,-30);ctx.lineTo(31,-12);ctx.lineTo(24,26);ctx.lineTo(-25,28);ctx.lineTo(-34,2);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#b7ff8b';ctx.fillRect(-19,-10,12,7);ctx.fillRect(8,-10,11,7);
+    ctx.fillStyle='#0b1514';ctx.fillRect(-13,-8,5,4);ctx.fillRect(13,-8,4,4);
+    ctx.strokeStyle='#7addb2';ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(-15,26);ctx.lineTo(-19,40+step);ctx.moveTo(17,26);ctx.lineTo(20,40-step);ctx.stroke();
+  }else{
+    const halo=ctx.createRadialGradient(0,0,2,0,0,65);halo.addColorStop(0,'#81dafa75');halo.addColorStop(1,'#81dafa00');
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(0,0,65,0,Math.PI*2);ctx.fill();
+    ctx.rotate(Math.sin(time*2)*.12);ctx.fillStyle='#1c2d4a';ctx.strokeStyle=blink?'#fff':'#a3ddff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(0,-33);ctx.lineTo(29,-10);ctx.lineTo(22,22);ctx.lineTo(0,33);ctx.lineTo(-23,21);ctx.lineTo(-29,-11);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#80ddff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.ellipse(0,0,42,13,time*1.2,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#b4f7ff';ctx.fillRect(-9,-6,18,12);
+  }
+  ctx.shadowBlur=0;ctx.textAlign='center';ctx.font='700 10px "DM Mono",monospace';ctx.fillStyle='#f4f8ee';
+  ctx.fillText(e.kind==='glitch'?'GLITCHLING':'PACKET DRONE',0,-46);
+  ctx.fillStyle='#161f2d';ctx.fillRect(-26,-40,52,3);
+  ctx.fillStyle=e.kind==='glitch'?'#b5ff86':'#7fcfff';ctx.fillRect(-26,-40,52*e.hp/e.maxHp,3);
+  ctx.restore();
+ }
+ const g=raid.guardian;
+ if(g&&g.hp>0){
+  ctx.save();ctx.translate(g.x,g.y);
+  ctx.shadowColor='#76bafa';ctx.shadowBlur=35;
+  ctx.strokeStyle='#7cc9ff';ctx.lineWidth=5;ctx.fillStyle='#17273f';
+  ctx.beginPath();ctx.moveTo(-64,-56);ctx.lineTo(0,-99);ctx.lineTo(62,-55);ctx.lineTo(71,38);ctx.lineTo(0,96);ctx.lineTo(-73,38);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#8fd8ff';ctx.fillRect(-35,-26,70,15);
+  ctx.fillStyle='#111a2a';ctx.fillRect(-18,-23,13,9);ctx.fillRect(12,-23,13,9);
+  for(let side of [-1,1]){ctx.save();ctx.scale(side,1);ctx.strokeStyle='#8bdcff';ctx.lineWidth=10;
+    ctx.beginPath();ctx.moveTo(58,-12);ctx.lineTo(111,-57+Math.sin(time*2)*14);ctx.lineTo(144,-5);ctx.stroke();
+    ctx.restore();}
+  ctx.fillStyle='#e9faff';ctx.textAlign='center';ctx.font='800 13px "DM Mono",monospace';
+  ctx.fillText('THE SENTINEL',0,-116);
+  ctx.restore();
+ }
 }
 function drawPlayer(time){
   const p=state.player;
@@ -477,6 +630,7 @@ function draw(time){
   if(state.shake>0)ctx.translate(random(-state.shake,state.shake),random(-state.shake*.65,state.shake*.65));
   drawBackground(time);
   drawBoss(time);
+  drawRaidEnemies(time);
   drawAttacks(time);
   drawRefractions();
   drawPlayer(time);
@@ -484,7 +638,7 @@ function draw(time){
   if(state.activePatch?.effects?.includes('blackout')||hasPower(state,'eclipse')){
     ctx.fillStyle='rgba(4,5,9,.25)';ctx.fillRect(0,0,W,H);
     // Keep the enemy and reflected weapons visible even in darkness.
-    drawBoss(time);drawRefractions();drawPlayer(time);
+    drawBoss(time);drawRaidEnemies(time);drawRefractions();drawPlayer(time);
   }
   if(state.flashes>0){ctx.fillStyle='rgba(255,241,187,'+(state.flashes*.22)+')';ctx.fillRect(0,0,W,H);}
   ctx.restore();
