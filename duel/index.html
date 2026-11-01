@@ -25,10 +25,10 @@
 <div class="event-meta"><span>WAVE-BASED ARCADE SURVIVAL</span><strong>BREACH. SENTINEL. COMPILER.</strong><small>INSTANT POWERS · EVOLUTION VOTES</small></div>
 </section>
 <div class="combat-layout">
-<section class="stage" aria-label="Playable Last Stand boss encounter" id="stage">
+<section class="stage" aria-label="Playable Codebreakers three-wave arcade raid" id="stage">
 <div class="stage-bar"><div><span class="status-dot"></span> <span id="broadcast-source">OFFLINE / SIMULATED</span> <b>01</b></div><div class="campaign-hud"><span id="round-indicator">WAVE 01 / SYSTEM BREACH</span><b id="wave-label">01 / 03</b></div><div class="game-clock" id="game-clock">04:00</div></div>
 <div class="canvas-outer">
-<canvas id="fight" width="1280" height="720" aria-label="The playable LAST STAND encounter. Move using arrows or A/D; hit Space to reflect attacks; Shift to dodge." tabindex="0"></canvas>
+<canvas id="fight" width="1280" height="720" aria-label="Codebreakers arcade raid. Move with A/D or arrow keys; Space or J reflects falling projectiles and strikes nearby Glitchlings; Shift or K dashes." tabindex="0"></canvas>
 <div class="screen-glare" aria-hidden="true"></div>
 <div class="boss-bar"><div class="boss-bar-top"><span><b class="boss-glyph">✳</b> <strong id="boss-name">THE COMPILER</strong></span><span id="boss-percent">100%</span></div><div class="boss-bar-track"><i id="boss-bar-fill"></i></div></div>
 <div class="combat-label" id="combat-label" aria-live="polite"><small>THE FIGHT HASN'T STARTED</small><strong>YOUR CHAT. YOUR NIGHTMARE.</strong></div>
@@ -37,17 +37,39 @@
 <div class="screen-overlay" id="start-screen">
 <div class="overline"><span>THE STREAMER</span><i></i><span>THE CROWD</span></div>
 <h2>THREE WAVES.<br/><em>ONE NIGHTMARE.</em></h2>
-<p>Clear Glitchlings and Packet Drones. Break the Sentinel miniboss. Then fight the evolving Compiler. <b>Chat powers trigger instantly. Major boss mutations still need a vote.</b></p>
+<p>Delete 12 enemies, break the Sentinel, then defeat The Compiler. <b>You start with 3 shields. Reflected projectiles damage enemies. Chat can heal, protect or sabotage you.</b></p>
+<div id="onboarding" class="onboarding-steps" aria-label="How to play"><span><b>01 · MOVE</b><small>A / D or ← →</small></span><span><b>02 · ATTACK</b><small>SPACE near shots or Glitchlings</small></span><span><b>03 · DODGE</b><small>SHIFT / K to dash</small></span></div>
 <div class="start-buttons"><button class="big-cta" id="play-btn">START THE RAID <b>↗</b></button><button class="demo-cta" id="show-btn">WATCH THE CHAOS <span>▶</span></button></div>
-<span class="play-note">A / D MOVE &nbsp; · &nbsp; SPACE REFLECT &nbsp; · &nbsp; SHIFT DASH &nbsp; · &nbsp; MOBILE TOUCH BELOW</span>
+<span class="play-note">REFLECT FALLING SHOTS INTO ENEMIES · SPACE ALSO STRIKES NEARBY GLITCHLINGS · MOBILE TOUCH BELOW</span>
 </div>
 <div class="screen-overlay result-screen hidden" id="result-screen"><div class="overline" id="result-label">RUN COMPLETE</div><h2 id="result-title">YOU<br/><em>SURVIVED.</em></h2><p id="result-description"></p><div class="result-stats"><div><strong id="result-score">0</strong><span>SCORE</span></div><div><strong id="result-best">0</strong><span>PERSONAL BEST</span></div><div><strong id="result-wave">01</strong><span>HIGHEST WAVE</span></div><div><strong id="result-kills">0</strong><span>ENEMIES DELETED</span></div><div><strong id="result-rank">D</strong><span>RAID RANK</span></div><div><strong id="result-reflects">0</strong><span>REFLECTIONS</span></div><div class="hidden"><strong id="result-authors">0</strong><span>CHAT ARCHITECTS</span></div></div><div class="boss-dna-recap" id="boss-dna-recap" aria-label="Viewer-authored boss history"></div><button id="again-btn" class="big-cta">RUN IT BACK <b>↗</b></button></div>
 </div>
 <div class="stage-bottom"><div class="health-set"><span>STREAMER</span><div class="health-track"><i id="health-fill"></i></div><b id="health-number">100</b></div><div class="score-hud"><b id="score-value">000000</b><small>SCORE</small></div><div class="combo-info" id="combo-info">0 × REFLECT CHAIN</div><div class="key-guide"> <kbd>←</kbd><kbd>→</kbd> MOVE <kbd>SPACE</kbd> REFLECT <kbd>SHIFT</kbd> DASH</div></div>
+<div id="raid-coach" class="raid-coach" data-kind="neutral" role="status" aria-live="polite" aria-atomic="true">
+<div class="coach-flag"><span class="coach-dot" aria-hidden="true"></span><small>STREAMER GUIDE</small><strong id="raid-hint-title">YOUR GOAL</strong></div>
+<p id="raid-hint-detail">Move with A / D. Press SPACE near falling attacks to reflect, or near Glitchlings to strike. SHIFT dashes.</p>
+</div>
+<details class="controls-help"><summary>HOW TO PLAY <span>CONTROLS + OBJECTIVES</span></summary>
+<div class="controls-grid">
+<div><b>YOU / STREAMER</b><p><strong>A / D or ← →</strong> move. <strong>SPACE / J</strong> reflects falling shots when they approach your character. The same button strikes Glitchlings in close range. <strong>SHIFT / K</strong> dashes through danger.</p></div>
+<div><b>THE CAMPAIGN</b><p><strong>Wave 1:</strong> delete 12 enemies. <strong>Wave 2:</strong> reflect shots into the Sentinel. <strong>Wave 3:</strong> defeat The Compiler. You gain health, a shield and a weapon upgrade between waves.</p></div>
+<div><b>YOUR AUDIENCE</b><p>Viewers type <strong>!power shield</strong> to protect you, <strong>!power medkit</strong> to heal, or <strong>!power armor</strong> to strengthen the boss. <strong>!patch meteor+moon</strong> votes on a boss mutation.</p></div>
+</div></details>
 <div class="touch-controls"><button data-key="left" aria-label="Move left">←</button><button data-key="parry" class="touch-parry" aria-label="Reflect attack">REFLECT <span>✳</span></button><button data-key="dash" aria-label="Dash">DASH</button><button data-key="right" aria-label="Move right">→</button></div>
 </section>
 <aside class="broadcast-rail">
 <div class="rail-header"><span>THE AUDIENCE</span><b>DIRECTS THE WHOLE FIGHT</b></div>
+<section class="chat-quickstart" aria-label="Twitch chat commands">
+<div class="chat-quicktop"><strong>CHAT QUICK START</strong><span>TYPE IN TWITCH CHAT DURING A RAID</span></div>
+<div class="chat-command-grid">
+<div><code>!power shield</code><small>Block the next hit</small></div>
+<div><code>!power medkit</code><small>Heal the streamer</small></div>
+<div><code>!power armor</code><small>Strengthen the boss</small></div>
+<div><code>!patch meteor+moon</code><small>Vote to mutate the boss</small></div>
+</div>
+<p>Power commands activate immediately with cooldowns. Only <b>!patch</b> uses a vote. Commands must be sent in the Twitch channel chat, not typed into PATCH.</p>
+<button id="copy-chat-guide" type="button" class="copy-chat-guide">COPY CHAT INSTRUCTIONS <span>⧉</span></button>
+</section>
 <section class="incoming"><div class="incoming-upper"><span><i></i> NEXT BOSS EVOLUTION</span><span id="vote-time">12<span>S</span></span></div><div class="incoming-track"><i id="vote-progress"></i></div><div class="incoming-main"><span id="next-effect" class="effect-tag">AWAITING CHAT</span><h2>CHOOSE<br/><em>THE CHAOS.</em></h2><p><strong>Perks activate immediately.</strong> Boss physics evolutions use fair votes. Survive the raid to reach the final Compiler.</p></div><div class="vote-count"><span id="vote-total">0</span><small id="vote-caption">INSTANT POWERS / COOLDOWN LIMITED</small></div></section>
 <section class="attack-builder"><div class="section-label">THE CHAT DIRECTOR <span>INSTANT PERKS · EVOLUTION VOTES</span></div>
 <div class="power-tabs" role="tablist" aria-label="Audience powers">

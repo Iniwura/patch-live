@@ -49,3 +49,20 @@ The original Twitch developer application registration was blocked by 2FA. The u
 - A Chromium browser mock tested the HTML connect flow, subscription request, test-event filtering, allowed chat event and in-game power at 320px, 390px and 1440px with no JavaScript errors or horizontal overflow.
 - **Twitch authorization remains unverified.** The browser mock used synthetic messages to exercise the integration, and is not Twitch evidence. Only an actual broadcaster-authenticated Streamer.bot instance and a real Twitch chat message can complete that check. The user must film real Twitch chat and gameplay before claiming hackathon compliance.
 
+
+## Final streamer onboarding and survival pass — 2026-11-01
+
+The broadcaster reported that live chat worked through Streamer.bot, but that manual gameplay was initially confusing and the streamer died too quickly. The submitted screenshots show the **TWITCH CHAT VIA STREAMER.BOT** game status and a credited `!power shield` command from the broadcaster; those screenshots are user-supplied observational evidence, not an independently archived raw Twitch transport log.
+
+The final cleanup adds:
+- Three beginning shields, a 3-second first-hit grace window, and 1.8-second post-hit invulnerability.
+- Projectile damage scaling 9/12/14 with harder waves; ground contact 3; wave transitions restore 30 health, one shield and a temporary weapon upgrade.
+- Slower manual enemy spawning without slowing the guided demo.
+- Clear pre-raid streamer controls, persistent contextual in-game hint bar, expandable HOW TO PLAY instructions, and a Twitch CHAT QUICK START with four exact commands and a copyable chat announcement.
+- A low-health hint prompting `!power medkit` or `!power shield` instead of hiding that audience help is available.
+
+Automated test suite: **61/61 passed** on the feature branch. Independent Chromium QA checked 320px/390px/768px/1440px layout, playable Start Raid controls, expandable instructions, clipboard copy, instant `!power`, evolution `!patch`, and retained the local Streamer.bot connection UI. No page exceptions or horizontal overflow in those checks.
+
+Controlled hands-off manual run now reached approximately **60 seconds** before defeat, compared with approximately 39 seconds in an earlier tested intermediate build. An unmoving player still loses; this is not guaranteed streamer survival. The guided encounter still completed all three real waves with a final-boss victory using the game engine, not a forced result.
+
+Live Twitch authorization and real viewer command were **not re-tested** during this final balance pass. The earlier broadcaster screenshots and confirmation are the evidence for that connection. Record actual Twitch chat and gameplay in the final submission video.

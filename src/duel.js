@@ -7,6 +7,7 @@ import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, di
 import { RAID_WAVES, createCampaign, tickCampaign, chooseRaidTarget, applyRaidHit, canAdvanceCampaign, nextRaidWave, finishCampaign, rankCampaign } from './raid-campaign.js';
 import { shouldCaptureGameKey } from './input-safety.js';
 import { StreamerbotChatBridge } from './streamerbot-bridge.js';
+import { RAID_BALANCE, projectileDamage, raidCoachHint } from './raid-coach.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
@@ -26,11 +27,12 @@ function makeState(){
   return {
     running:false, guided:false, finished:false, elapsed:0, duration:240, raid:createCampaign(),
     cooldownUsers:new Map(), cooldownPowers:new Map(), nextInstant:0,
-    player:{x:316,y:FLOOR-32, vx:0, health:100, shields:0, invuln:0, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
+    player:{x:316,y:FLOOR-32, vx:0, health:100, shields:RAID_BALANCE.startingShields, invuln:RAID_BALANCE.openingGraceSeconds, dash:0, dashCooldown:0, parryCooldown:0, parryFlash:0},
     boss:{x:BOSS_X,y:BOSS_Y,maxHealth:460,health:460,form:'PRIME',evolution:0,aspects:[],morphPulse:0,hitFlash:0,weakWindow:0,exposed:true},
-    attacks:[], refractions:[], particles:[], ambient:[], nextAttack:1.3,
+    attacks:[], refractions:[], particles:[], ambient:[], nextAttack:3.4,
     activePatch:null, patchEnds:0, modifiers:{}, weapon:'reflect', weaponUntil:0, shockNext:2, combo:0, reflects:0, points:0,
-    hudText:'MAKE YOUR FIRST MOVE', hudSmall:'WAIT FOR A TELEGRAPH. REFLECT AT THE LAST SECOND.',
+    hudText:'MAKE YOUR FIRST MOVE', hudSmall:'MOVE WITH A/D · SPACE REFLECTS OR STRIKES · SHIFT DASHES.',
+    lastCoachAt:-1,lastCoachKey:'',
     hitstop:0, shake:0, flashes:0, wave:0, demoIndex:0, sampleVotes:0,
     authors:new Set(), history:[], result:null,
   };
@@ -212,10 +214,12 @@ function start(guided){
   $('round-indicator').textContent='WAVE 01 / '+RAID_WAVES[0].name;
   $('wave-label').textContent='01 / 03';
   $('score-value').textContent='000000';
+  state.lastCoachAt=-1;state.lastCoachKey='';
   $('auto-chaos').textContent=guided?'AUTO CHAT RUNNING':'AUTO CHAT DEMO';
+  $('onboarding').classList.add('hidden');
   activeTab='ally';buildEffectButtons();
   displayFeed('SYSTEM / '+(actualLive?'TWITCH':'OFFLINE'),'THREE-WAVE RAID ARMED. POWER COMMANDS ARE INSTANT; PATCHES VOTE ON EVOLUTION.','good');
-  updateVoteUI();canvas.focus();synth(380,.22,'sawtooth',.045);
+  updateVoteUI();updateUI();canvas.focus();synth(380,.22,'sawtooth',.045);
 }
 function finish(won){
   if(state.finished)return;
@@ -229,6 +233,7 @@ function finish(won){
   $('result-kills').textContent=state.raid.kills.toLocaleString();
   $('result-rank').textContent=rankCampaign(state.raid,won);
   $('result-screen').classList.remove('hidden');
+  state.lastCoachKey='';
   $('result-label').textContent=won?'SYSTEM CLEARED · THREE WAVES SURVIVED':'RAID ENDED · TRY AGAIN';
   $('result-title').innerHTML=won?'CODE<br/><em>BREAKER.</em>':'SYSTEM<br/><em>FAILURE.</em>';
   $('result-description').textContent=won?
@@ -247,6 +252,7 @@ function finish(won){
   }
   impact(won?'KNOCKOUT!':'GAME OVER','pink');
   synth(won?580:80,.45,won?'triangle':'sawtooth',.06);
+  updateUI();
 }
 function sparks(x,y,color,count=1){
   for(let k=0;k<count;k++){
@@ -273,14 +279,14 @@ function advanceWave(){
   if(!canAdvanceCampaign(state.raid))return;
   const result=nextRaidWave(state.raid);
   if(!result)return;
-  state.player.health=Math.min(100,state.player.health+16);
+  state.player.health=Math.min(100,state.player.health+RAID_BALANCE.waveHeal);
   state.player.shields=Math.min(2,state.player.shields+1);
   state.weapon=state.raid.wave===1?'lance':'cannon';
   state.weaponUntil=state.elapsed+14;
   state.attacks=[];state.refractions=[];
   state.nextAttack=state.elapsed+2;
   state.shake=14;state.flashes=.22;
-  state.hudText=result;state.hudSmall='STAGE CLEARED · BONUS HEALTH +16 · EQUIPMENT UPGRADED';
+  state.hudText=result;state.hudSmall='STAGE CLEARED · HEALTH +30 · SHIELD +1 · WEAPON UPGRADED';
   impact('WAVE '+(state.raid.wave+1)+'!');
   displayFeed('CAMPAIGN',result+' · EQUIPMENT UPGRADED','good');
   sparks(state.player.x,state.player.y,'#eaff68',40);
@@ -327,10 +333,10 @@ function dash(){
   for(let i=0;i<16;i++)sparks(p.x,p.y,'#c8d4ff');
   synth(260,.12,'sawtooth',.035);
 }
-function damagePlayer(amount=17){
+function damagePlayer(amount=RAID_BALANCE.projectileDamage[0]){
   const p=state.player;if(p.invuln>0||!state.running)return;
-  if((p.shields||0)>0){p.shields--;p.invuln=.8;state.shake=9;state.hudText='SHIELD SAVED YOU';impact('AEGIS BLOCK');displayFeed('DEFENSE','AUDIENCE SHIELD ABSORBED AN ATTACK','good');return;}
-  p.health=Math.max(0,p.health-amount);state.raid.hitCount++;p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
+  if((p.shields||0)>0){p.shields--;p.invuln=1.05;state.shake=9;state.hudText='SHIELD SAVED YOU';impact('AEGIS BLOCK');displayFeed('DEFENSE','AUDIENCE SHIELD ABSORBED AN ATTACK','good');return;}
+  p.health=Math.max(0,p.health-amount);state.raid.hitCount++;p.invuln=RAID_BALANCE.hitInvulnerabilitySeconds;state.combo=0;state.shake=17;state.flashes=.25;
   state.hudText='DIRECT HIT';state.hudSmall='THE AUDIENCE LANDED THEIR ATTACK.';
   impact('DIRECT HIT','pink');
   for(let i=0;i<40;i++)sparks(p.x,p.y,'#ff597a');
@@ -369,12 +375,12 @@ function update(dt){
   if(state.weaponUntil<=state.elapsed)state.weapon='reflect';
   if(hasPower(state,'shock')&&state.elapsed>=state.shockNext){
     state.shockNext=state.elapsed+2.4;
-    if(p.x>420&&p.x<630)damagePlayer();
+    if(p.x>420&&p.x<630)damagePlayer(RAID_BALANCE.shockDamage);
   }
   if(Date.now()>=round.endsAt)resolveVote();
   if(state.elapsed>=state.nextAttack)spawnAttack();
   const mobEvents=tickCampaign(state.raid,dt,p.x,{guided:state.guided});
-  if(mobEvents.collision)damagePlayer(6);
+  if(mobEvents.collision)damagePlayer(RAID_BALANCE.contactDamage);
   for(const mobShot of mobEvents.shots)state.attacks.push({
     x:mobShot.x,y:122,t:0,windup:.95,speed:440+state.raid.wave*35,
     kind:'bolt',r:25,state:'warning',name:mobShot.name,reflected:false
@@ -387,7 +393,7 @@ function update(dt){
       const effects=new Set(state.activePatch?.effects||[]);
       if(effects.has('magnet'))a.x+=(p.x-a.x)*dt*.17;
       a.y+=a.speed*dt;
-      if(a.y>=p.y-24&&a.y<=p.y+22&&Math.abs(a.x-p.x)<a.r+26){a.state='hit';damagePlayer();}
+      if(a.y>=p.y-24&&a.y<=p.y+22&&Math.abs(a.x-p.x)<a.r+26){a.state='hit';damagePlayer(projectileDamage(state.raid.wave));}
       else if(a.y>FLOOR+65){a.state='miss';state.combo=0;for(let i=0;i<12;i++)sparks(a.x,FLOOR,'#ff657d');}
     }
   }
@@ -449,6 +455,19 @@ function updateUI(){
   }
   $('health-number').textContent=Math.ceil(state.player.health);
   $('health-fill').style.width=state.player.health+'%';
+  $('health-fill').classList.toggle('critical',state.player.health<=35);
+  // Update hints only when their meaning changes, so screen readers aren't spammed.
+  if(state.lastCoachAt<0||state.elapsed-state.lastCoachAt>=.65||!state.running){
+    const tip=raidCoachHint(state);
+    const key=tip.kind+'|'+tip.title+'|'+tip.detail;
+    if(key!==state.lastCoachKey){
+      $('raid-hint-title').textContent=tip.title;
+      $('raid-hint-detail').textContent=tip.detail;
+      $('raid-coach').dataset.kind=tip.kind;
+      state.lastCoachKey=key;
+    }
+    state.lastCoachAt=state.elapsed;
+  }
   $('combo-info').textContent=state.combo+' × REFLECT · '+(state.weapon==='reflect'?'STANDARD':state.weapon.toUpperCase());
   $('perk-ribbon').textContent=['SHIELDS '+(state.player.shields||0),'KILLS '+raid.kills,
     ...Object.keys(state.modifiers||{}).filter(k=>hasPower(state,k)).map(k=>k.toUpperCase()),
@@ -681,6 +700,22 @@ $('again-btn').addEventListener('click',()=>start(false));
 $('auto-chaos').addEventListener('click',()=>start(true));
 document.querySelectorAll('.power-tab').forEach(b=>b.addEventListener('click',()=>{activeTab=b.dataset.tab;buildEffectButtons();}));
 
+// A one-click guide lets broadcasters paste exact supported commands into their chat.
+$('copy-chat-guide').addEventListener('click',async()=>{
+  const text=['PATCH//LIVE CHAT COMMANDS (during the raid):',
+    '!power shield — block a hit',
+    '!power medkit — restore 24 HP',
+    '!power armor — strengthen the boss',
+    '!patch meteor+moon — vote on a boss mutation',
+    'Powers are instant with cooldowns. Only !patch uses a vote.'].join('\n');
+  const button=$('copy-chat-guide');
+  try{
+    await navigator.clipboard.writeText(text);
+    button.textContent='COPIED — PASTE INTO TWITCH CHAT ✓';
+  }catch{
+    button.textContent='COPY BLOCKED — SELECT COMMANDS ABOVE';
+  }
+});
 $('chat-lab-toggle').addEventListener('click',()=>{$('lab-drawer').classList.remove('hidden');$('viewer').focus();});
 $('close-lab').addEventListener('click',()=>{$('lab-drawer').classList.add('hidden');canvas.focus();});
 $('lab-form').addEventListener('submit',e=>{

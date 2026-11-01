@@ -52,7 +52,7 @@ export function tickCampaign(raid,dt,playerX,{guided=false}={}){
  const shots=[];
  let collision=false;
  const maxMob=raid.wave===0?4:raid.wave===1?3:2;
- const interval=guided?1.95:2.35;
+ const interval=guided?1.95:3.1; // Real streamers need time to read and react.
  raid.spawnClock+=dt;
  if(raid.spawnClock>=interval&&raid.enemies.length<maxMob){
   raid.spawnClock=0;
