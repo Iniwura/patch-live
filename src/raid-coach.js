@@ -45,7 +45,7 @@ export function raidCoachHint(state){
   };
   if(wave===0)return {
     kind:'neutral',title:'WAVE 1 — DELETE 12 ENEMIES',
-    detail:'A / D or ← → to move. SPACE / J strikes nearby Glitchlings and reflects falling shots. Don't stand in warning lanes.'
+    detail:'A / D or ← → to move. SPACE / J strikes nearby Glitchlings and reflects falling shots. Avoid standing in warning lanes.'
   };
   if(wave===1)return {
     kind:'neutral',title:'WAVE 2 — BREAK THE SENTINEL',
