@@ -3,6 +3,8 @@ on:
   push:
     branches: [video/real-screenrecorded-demo]
     paths: [.github/workflows/collect-demo-voice.yml]
+  pull_request:
+    paths: [.github/workflows/collect-demo-voice.yml]
   workflow_dispatch:
 permissions:
   contents: read
