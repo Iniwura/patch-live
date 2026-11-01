@@ -1,6 +1,6 @@
 # PATCH//LIVE — Codex working contract
 
-This file describes the **current shipped project**. Older documents such as `FIRST_CODEX_PROMPT.md`, `CODEX_TASK.md`, `CODEX_START.md`, and `RELEASE_CHECKLIST.md` capture historical development phases; treat their old architecture, counts and blockers as dated evidence, not current instructions.
+This file describes the **current shipped project**. Older documents such as `FIRST_CODEX_PROMPT.md`, `CODEX_TASK.md`, and `CODEX_START.md` capture historical development phases; treat their old architecture, counts and blockers as dated evidence, not current instructions. `RELEASE_CHECKLIST.md` is the updated post-submission status.
 
 ## Project identity
 
