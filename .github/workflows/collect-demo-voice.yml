@@ -1,0 +1,28 @@
+name: PATCH narration voice tracks
+on:
+  push:
+    branches: [video/real-screenrecorded-demo]
+    paths: [.github/workflows/collect-demo-voice.yml]
+  pull_request:
+    paths: [.github/workflows/collect-demo-voice.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve narrated audio
+        run: |
+          set -e
+          mkdir -p narration
+          curl -fL --retry 3 --max-time 45 https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/07bd5a07-7f46-40a0-b305-959b0dffecbe.mp3 -o narration/part-1.mp3
+          curl -fL --retry 3 --max-time 45 https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/91a9a27b-ff4e-4144-bd3a-ec90071aa772.mp3 -o narration/part-2.mp3
+          curl -fL --retry 3 --max-time 45 https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/db4b30de-7ec9-4ce6-979c-a85a17c67d1a.mp3 -o narration/part-3.mp3
+          curl -fL --retry 3 --max-time 45 https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/3e3b4ca8-54d7-4934-a279-d29f4b5ead85.mp3 -o narration/part-4.mp3
+          ls -lh narration/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PATCH-Demo-Voiceover-Final
+          path: narration/*.mp3
+          retention-days: 7
