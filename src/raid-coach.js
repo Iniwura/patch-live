@@ -3,13 +3,13 @@
  * These values drive real combat, not the assisted offline showcase alone.
  */
 export const RAID_BALANCE=Object.freeze({
-  startingShields:2,
-  openingGraceSeconds:2.5,
-  hitInvulnerabilitySeconds:1.4,
-  waveHeal:28,
-  projectileDamage:Object.freeze([11,13,15]),
-  contactDamage:4,
-  shockDamage:8
+  startingShields:3,
+  openingGraceSeconds:3,
+  hitInvulnerabilitySeconds:1.8,
+  waveHeal:30,
+  projectileDamage:Object.freeze([9,12,14]),
+  contactDamage:3,
+  shockDamage:7
 });
 
 export function projectileDamage(wave){
