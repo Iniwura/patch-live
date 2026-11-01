@@ -280,7 +280,7 @@ function advanceWave(){
   const result=nextRaidWave(state.raid);
   if(!result)return;
   state.player.health=Math.min(100,state.player.health+RAID_BALANCE.waveHeal);
-  state.player.shields=Math.min(2,state.player.shields+1);
+  state.player.shields=Math.min(RAID_BALANCE.maxShields,state.player.shields+1);
   state.weapon=state.raid.wave===1?'lance':'cannon';
   state.weaponUntil=state.elapsed+14;
   state.attacks=[];state.refractions=[];
