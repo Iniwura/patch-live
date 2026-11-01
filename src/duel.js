@@ -323,10 +323,10 @@ function dash(){
   for(let i=0;i<16;i++)sparks(p.x,p.y,'#c8d4ff');
   synth(260,.12,'sawtooth',.035);
 }
-function damagePlayer(){
+function damagePlayer(amount=17){
   const p=state.player;if(p.invuln>0||!state.running)return;
   if((p.shields||0)>0){p.shields--;p.invuln=.8;state.shake=9;state.hudText='SHIELD SAVED YOU';impact('AEGIS BLOCK');displayFeed('DEFENSE','AUDIENCE SHIELD ABSORBED AN ATTACK','good');return;}
-  p.health=Math.max(0,p.health-17);state.raid.hitCount++;p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
+  p.health=Math.max(0,p.health-amount);state.raid.hitCount++;p.invuln=.85;state.combo=0;state.shake=17;state.flashes=.25;
   state.hudText='DIRECT HIT';state.hudSmall='THE AUDIENCE LANDED THEIR ATTACK.';
   impact('DIRECT HIT','pink');
   for(let i=0;i<40;i++)sparks(p.x,p.y,'#ff597a');
@@ -350,6 +350,8 @@ function update(dt){
     if(next){
       const dist=next.x-p.x;p.vx+=(clamp(dist*4,-330,330)-p.vx)*Math.min(1,dt*9);
       if(next.state==='falling'&&Math.abs(next.x-p.x)<90&&Math.abs(next.y-p.y)<107&&p.parryCooldown<=0)parry();
+      else if(!state.attacks.some(a=>a.state==='falling'&&Math.abs(a.x-p.x)<130&&Math.abs(a.y-p.y)<170)
+        &&state.raid.enemies.some(e=>e.kind==='glitch'&&Math.abs(e.x-p.x)<95)&&p.parryCooldown<=0)parry();
     }else p.vx+=(0-p.vx)*dt*6;
   }else{
     let input=(keys.has('right')?1:0)-(keys.has('left')?1:0);
@@ -368,7 +370,7 @@ function update(dt){
   if(Date.now()>=round.endsAt)resolveVote();
   if(state.elapsed>=state.nextAttack)spawnAttack();
   const mobEvents=tickCampaign(state.raid,dt,p.x,{guided:state.guided});
-  if(mobEvents.collision)damagePlayer();
+  if(mobEvents.collision)damagePlayer(6);
   for(const mobShot of mobEvents.shots)state.attacks.push({
     x:mobShot.x,y:122,t:0,windup:.95,speed:440+state.raid.wave*35,
     kind:'bolt',r:25,state:'warning',name:mobShot.name,reflected:false
