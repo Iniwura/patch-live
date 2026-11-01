@@ -26,5 +26,6 @@ test('simulation is always disclosed on the encounter and can be tested without 
   assert.match(html,/OFFLINE \/ SIMULATED/);
   assert.match(html,/REAL TWITCH IS NOT CONNECTED/);
   assert.match(html,/CUSTOM CHAT TEST/);
-  assert.match(source,/LOCAL TEST ACCEPTED/);
+  assert.match(source,/INSTANT .* ACTIVATED/);
+  assert.match(source,/EVOLUTION VOTE ACCEPTED/);
 });
