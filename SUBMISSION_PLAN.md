@@ -2,18 +2,18 @@
 
 ## Hook
 
-**"Chat writes the monster. The streamer fights their code."**
+**"Three waves. Two armies. One boss your Twitch chat keeps rewriting."**
 
-An original browser arcade raid in which Twitch viewers vote to help or sabotage the streamer, physically mutate a gigantic original machine-beast, change the arena and clock, and choose the weapons used against the player. The streamer can reflect audience-authored attacks back into the monster's execution core.
+An original three-stage browser survival raid: Twitch viewers instantly cast bounded powers to help or sabotage the streamer, while voted physics mutations rewrite an evolving final boss. Glitchlings, Packet Drones and The Sentinel precede The Compiler. The streamer can reflect audience-authored attacks back into the monster's execution core.
 
 What makes the demonstration worth watching: the chat is the monster's designer, the fight is readable even without narration, and the winning battle produces an authorship trail naming the viewers who built the nightmare.
 
 ## Official judging alignment
 
 - **Innovation:** viewers architect a changing enemy, and the streamer weaponizes its attacks as active counterplay. Be honest: Choice Chamber and Crowd Control already have voting/effect systems.
-- **Impact:** lightweight browser game; streamer keeps direct skill, audience has agency; 18 safe effects, 6 physics rules, one vote per person, chat credits.
-- **Technical:** deterministic allowlisted parser, user-ID normalization, Twitch OAuth/EventSub WebSocket client, recovery code, bounded effects, real game physics, original procedural creature art, 44 automated tests.
-- **Design:** original multi-form Compiler boss, reflective projectiles, on-screen telegraphs, HUD, mobile control, context-rich recap, standalone landing/duel routes.
+- **Impact:** lightweight browser game; streamer keeps direct skill, audience has agency; 18 cooldown-limited instant powers, 6 physics rules with one vote per person for mutations, three combat waves, a score and credited viewers.
+- **Technical:** deterministic allowlisted parser, user-ID normalization, Twitch OAuth/EventSub WebSocket client, recovery code, bounded effects, real game physics, original procedural creature art, 50 automated tests in the campaign branch.
+- **Design:** four-stage art direction including minions, Sentinel and multi-form Compiler, reflected projectiles, visible score and wave progress, mobile controls, context-rich recap.
 
 ## Required before recording
 
@@ -29,12 +29,12 @@ What makes the demonstration worth watching: the chat is the monster's designer,
 
 | Segment | Footage to capture | Short voiceover angle |
 |---|---|---|
-| 0:00–0:10 | Colossal animated Compiler boss in full game | "This monster is written by Twitch chat." |
-| 0:10–0:30 | Actual Twitch stream/chat; a viewer sends `!power armor` | "Viewers decide whether to help me or make the boss stronger." |
-| 0:30–0:50 | Another viewer sends `!power lance`; weapon changes visibly | "They can even change the tool I use to fight back." |
-| 0:50–1:10 | Actual `!power squeeze`, `timecut` or other real changes | "The battlefield and clock can change during the fight." |
-| 1:10–1:35 | Actual `!patch meteor+moon`, mutated boss form, real reflect shot | "Every rule creates a new form and a new strategy." |
-| 1:35–1:50 | A real win/lose result and author recap (if won) | "Every run ends with credit for the viewers who shaped it." |
+| 0:00–0:12 | Three-stage raid intro: Glitchlings, Packet Drone, Sentinel, Compiler | "Your chat builds the challenge. You fight through three stages." |
+| 0:12–0:34 | Real Twitch chat sends `!power shield` or `!power armor`; instant effect lands | "Viewers can help or sabotage instantly, without waiting for a poll." |
+| 0:34–0:53 | Wave 1 completed, Sentinel appears; real `!power lance` changes equipment | "Every wave advances through real combat and earns upgrades." |
+| 0:53–1:11 | Actual `!power squeeze` or `timecut` changes arena/clock | "Your community can rewrite the arena mid-fight." |
+| 1:11–1:35 | Wave 3; real Twitch vote `!patch meteor+moon` transforms Compiler; reflected shot | "The final boss inherits chat's decisions." |
+| 1:35–1:51 | Victory result with score, high score, wave, viewer genome | "Players earn a score. Viewers get credit for making it difficult." |
 | 1:50–2:12 | Genuine Codex app project/thread, screenshots of implementation and /status | "I used Codex to create the original project architecture and game foundation." |
 | 2:12–2:25 | GitHub repository, live landing and game | "Open the live game and try to survive your own chat." |
 
@@ -42,9 +42,9 @@ Real Twitch clips must be captured **after authorization**, not replaced with th
 
 ## Devpost description draft
 
-PATCH//LIVE: THE COMPILER is an audience-directed browser boss battle built for Twitch streamers. A colossal original code-themed enemy evolves from viewer decisions. Chat can heal the streamer, change their weapon, armor or heal the boss, compress the arena, reverse controls, steal seconds, and combine physical laws. The streamer cannot choose the monster's next mutation. Their one counterpower is skill: read the telegraph, move into position, and reflect the community's attacks into the execution core.
+PATCH//LIVE: CODEBREAKERS is a Twitch-audience-directed, three-wave arcade survival raid. Players clear Glitchlings and Packet Drones, defeat The Sentinel miniboss, and fight a colossal original code-themed Compiler that evolves through viewer decisions. Chat can instantly heal the streamer, alter equipment, armor the final boss, shrink the arena, steal seconds, and decide major physics mutations through fair voting. The streamer cannot choose the monster's next mutation. Their one counterpower is skill: read the telegraph, move into position, and reflect the community's attacks into the execution core.
 
-Every round credits the viewers behind the winning decisions. The monster's silhouette, attacks, armor and finale change with the run. Offline mode lets judges play immediately; Twitch mode connects through broadcaster OAuth and EventSub when authorized. Built as a static browser game with a strict command compiler, bounded, fair voting rules, original procedural character and arena artwork, and responsive desktop/mobile controls.
+The ending displays a run score, locally saved personal best, enemies defeated, and credited viewer actions. The monster's silhouette, attacks, armor and finale change with the run. Offline mode lets judges play immediately; Twitch mode connects through broadcaster OAuth and EventSub when authorized. Built as a static browser game with a strict command compiler, bounded, fair voting rules, original procedural character and arena artwork, and responsive desktop/mobile controls.
 
 The project began in a genuine Codex development thread: its architecture, original three-act game foundation, movement/combat, guided demo and tests were built with Codex. Later audience-director and original Compiler raid art were developed in ChatGPT/GitHub; those changes are not misrepresented as Codex output.
 
