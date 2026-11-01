@@ -6,6 +6,7 @@ import { drawCodexMonster, drawCompilerStage } from './codex-monster.js';
 import { TwitchChat, beginOAuth, consumeOAuthCallback, getClientId, getToken, disconnectToken, redirectUri } from './twitch.js';
 import { RAID_WAVES, createCampaign, tickCampaign, chooseRaidTarget, applyRaidHit, canAdvanceCampaign, nextRaidWave, finishCampaign, rankCampaign } from './raid-campaign.js';
 import { shouldCaptureGameKey } from './input-safety.js';
+import { StreamerbotChatBridge } from './streamerbot-bridge.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
@@ -41,6 +42,8 @@ const TABS=['ally','enemy','arena','physics'];
 const CLOCK={individual:7,effect:8,global:1.1};
 let activeTab='ally';
 let actualLive=false;
+let sbReady=false;
+let sbMode=false;
 
 function displayFeed(head,body,kind='normal'){
   const root=$('feed'), el=document.createElement('div');
@@ -106,7 +109,7 @@ function acceptChatVote(evt,origin='local'){
   return {ok:true,message:'EVOLUTION VOTE ACCEPTED · '+p.id.toUpperCase()};
 }
 function castLocalVote(name,command){
-  if(actualLive)return {ok:false,message:'OFFLINE TEST VOTING IS DISABLED WHILE TWITCH IS LIVE'};
+  if(actualLive||sbReady)return {ok:false,message:'OFFLINE TEST VOTING IS DISABLED WHILE CONNECTED TO TWITCH CHAT'};
   return acceptChatVote(demoChatEvent(name,command,++counter),'local');
 }
 function resolveVote(){
@@ -162,7 +165,7 @@ function buildEffectButtons(){
     ? ['meteor','moon','reverse','hyper','magnet','blackout'].map(id=>({id,icon:{meteor:'✳',moon:'◌',reverse:'↟',hyper:'↯',magnet:'◎',blackout:'◒'}[id],name:id.toUpperCase(),description:'COMPOSABLE PHYSICS',command:'!patch '+id,key:'patch:'+id}))
     :COMMANDS.filter(p=>p.side===activeTab).map(p=>({...p,command:'!power '+p.id,key:'power:'+p.id}));
   for(const item of list){
-    const b=document.createElement('button');b.type='button';b.dataset.command=item.key;b.disabled=actualLive;
+    const b=document.createElement('button');b.type='button';b.dataset.command=item.key;b.disabled=actualLive||sbReady;
     const icon=document.createElement('span');icon.textContent=item.icon;
     const label=document.createElement('b');label.textContent=item.name;
     const help=document.createElement('small');help.textContent=item.description;
@@ -199,7 +202,7 @@ const demoVotes=[
   {t:103,name:'raid_boss',command:'!power bossheal'}
 ];
 function start(guided){
-  if(guided&&actualLive){displayFeed('SYSTEM','DISCONNECT TWITCH BEFORE RUNNING AN OFFLINE SHOWCASE');return;}
+  if(guided&&(actualLive||sbReady)){displayFeed('SYSTEM','DISCONNECT TWITCH CHAT BEFORE RUNNING AN OFFLINE SHOWCASE');return;}
   state=makeState();state.guided=!!guided;state.running=true;
   state.duration=guided?165:240;
   keys.clear();round=new AudienceRound(guided?8000:actualLive?20000:ROUND_MS);
@@ -687,6 +690,7 @@ $('lab-form').addEventListener('submit',e=>{
 $('resolve-now').addEventListener('click',()=>{if(state.running)resolveVote();$('lab-response').textContent='VOTE RESOLVED / LOCAL SIMULATION';});
 const twitch=new TwitchChat({
   onStatus:({state:connection,detail})=>{
+    if(sbMode)return;
     actualLive=connection==='live';
     $('connection-state').classList.toggle('live',actualLive);
     $('connection-state').classList.toggle('connecting',connection==='connecting');
@@ -694,12 +698,54 @@ const twitch=new TwitchChat({
     $('broadcast-source').textContent=actualLive?'TWITCH CHAT LIVE':connection==='connecting'?'TWITCH CONNECTING':'OFFLINE / SIMULATED';
     $('connection-disclosure').textContent=actualLive?'TWITCH EVENTSUB SUBSCRIPTION ACTIVE. LOCAL TEST VOTING IS DISABLED.':'PROTOTYPE / REAL TWITCH IS NOT CONNECTED. NO SIMULATED EVENTS ARE PRESENTED AS LIVE.';
     $('twitch-connect').textContent=actualLive?'TWITCH CONNECTED ✓':'CONNECT TWITCH ↗';
-    $('show-btn').disabled=actualLive;
-    $('auto-chaos').disabled=actualLive;
-    document.querySelectorAll('.effect-grid button').forEach(b=>b.disabled=actualLive);
+    $('show-btn').disabled=actualLive||sbReady;
+    $('auto-chaos').disabled=actualLive||sbReady;
+    document.querySelectorAll('.effect-grid button').forEach(b=>b.disabled=actualLive||sbReady);
     if(detail)displayFeed('TWITCH / '+connection.toUpperCase(),detail,actualLive?'good':'normal');
   },
   onMessage:event=>{if(actualLive)acceptChatVote(event,'twitch');}
+});
+// Optional read-only local Streamer.bot transport. Requires the user's own Twitch login.
+const streamerbot=new StreamerbotChatBridge({
+  onStatus:({state:connection,detail})=>{
+    if(!sbMode)return;
+    sbReady=connection==='connected'||connection==='live';
+    actualLive=connection==='live';
+    $('connection-state').classList.toggle('live',actualLive);
+    $('connection-state').classList.toggle('connecting',connection==='connecting'||connection==='connected');
+    $('connection-text').textContent=connection==='live'?'TWITCH / CHAT RECEIVED':
+      connection==='connected'?'STREAMER.BOT / WAITING FOR CHAT':
+      connection==='connecting'?'STREAMER.BOT / CONNECTING':'OFFLINE / SIMULATED';
+    $('broadcast-source').textContent=connection==='live'?'TWITCH CHAT VIA STREAMER.BOT':
+      connection==='connected'?'LOCAL BRIDGE / AWAITING REAL CHAT':'OFFLINE / SIMULATED';
+    $('connection-disclosure').textContent=connection==='live'?
+      'LOCAL STREAMER.BOT RECEIVED A REAL TWITCH CHAT MESSAGE. THIS IS NOT DIRECT EVENTSUB.':
+      sbReady?'LOCAL STREAMER.BOT SUBSCRIBED. NO REAL CHAT HAS BEEN OBSERVED YET.':
+      'TWITCH CHAT UNVERIFIED. OFFLINE TESTS ARE ALWAYS SIMULATED.';
+    $('twitch-connect').textContent=connection==='live'?'TWITCH CHAT CONNECTED ✓':'CONNECT TWITCH ↗';
+    $('sb-feedback').textContent=connection.toUpperCase()+' · '+detail;
+    $('show-btn').disabled=actualLive||sbReady;
+    $('auto-chaos').disabled=actualLive||sbReady;
+    document.querySelectorAll('.effect-grid button').forEach(b=>b.disabled=actualLive||sbReady);
+    if(detail)displayFeed('STREAMER.BOT / '+connection.toUpperCase(),detail,connection==='live'?'good':'normal');
+  },
+  onMessage:event=>{if(sbMode&&actualLive)acceptChatVote(event,'twitch');}
+});
+$('sb-connect').addEventListener('click',()=>{
+  // Do not mix native Twitch EventSub and local Streamer.bot events.
+  twitch.stop();disconnectToken();
+  sbMode=true;streamerbot.connect();
+});
+$('sb-disconnect').addEventListener('click',()=>{
+  streamerbot.disconnect();
+  sbMode=false;sbReady=false;actualLive=false;
+  $('connection-text').textContent='OFFLINE / SIMULATED';
+  $('broadcast-source').textContent='OFFLINE / SIMULATED';
+  $('connection-state').classList.remove('live','connecting');
+  $('connection-disclosure').textContent='TWITCH CHAT IS NOT CONNECTED. OFFLINE EVENTS ARE SIMULATED.';
+  $('twitch-connect').textContent='CONNECT TWITCH ↗';
+  $('show-btn').disabled=false;$('auto-chaos').disabled=false;
+  document.querySelectorAll('.effect-grid button').forEach(b=>b.disabled=false);
 });
 $('twitch-connect').addEventListener('click',()=>{
   $('twitch-modal').classList.remove('hidden');
