@@ -38,7 +38,7 @@ Use `npm run preview` to serve the built `dist/` tree. Node.js 20+ is recommende
 
 1. **Do not fake Twitch evidence.** `WATCH THE CHAOS` and the Offline Chat Lab contain simulated viewers and must remain labelled. A Streamer.bot local subscription is not proof that a real Twitch chat event arrived. The broadcaster previously supplied a real-command screenshot, but there is no archived raw transport log.
 2. **Respect untrusted audience input.** Only explicitly allowed `!power` and `!patch` commands can reach the game. Preserve per-user voting, cooldowns, bounded effects, typed event IDs, deduplication, and fail-closed behavior on transport errors.
-3. **Do not invent test results or deployment checks.** Report exact commands, environment, revision and outcomes. The latest post-cleanup release passed 65 automated tests, not an eternal guarantee.
+3. **Do not invent test results or deployment checks.** Report exact commands, environment, revision and outcomes. The submitted release passed 65 automated tests; this final cleanup branch passes 56 after removing engine-only prototype tests.
 4. **Keep all Twitch secrets out of source and public logs.** Public Client IDs are okay; access tokens, authorization codes, client secrets, and Streamer.bot credentials are not.
 5. **Keep the shipped route contract explicit.** `/duel/` is the only maintained game; `/play` and `/play/` must remain lightweight redirects to it, never a second playable bundle. Preserve the landing page and user-visible control/command labels.
 6. **Prioritize small, reversible changes.** After submission, use a dedicated branch and PR. No speculative new architecture, monetization, unrequested visual redesign or auto-merging into `main`.

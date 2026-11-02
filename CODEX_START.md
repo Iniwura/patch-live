@@ -16,7 +16,7 @@ Open `http://localhost:4173/` for the cinematic landing page, then enter `http:/
 
 - The v0.7 editorial/celestial identity is preserved; the landing route is in `index.html` + `src/landing.*`, and the only maintained playable route is `duel/index.html` + `src/duel.*`.
 - `/play` and `/play/` are compatibility redirects to `/duel/`; the retired Architect bundle is not copied into the build.
-- `npm test` has been run and currently passes 23/23 authored tests.
+- `npm test` passes 56/56 tests on the final cleanup branch; the retired engine-only tests are no longer part of the active source tree.
 - The production deployment is live at https://patch-live.vercel.app/ with the playable route at https://patch-live.vercel.app/duel/.
 - The published source is https://github.com/Iniwura/patch-live at release commit `6498385c9f70f97cbf10283498ad20452f195399`.
 - Real Twitch OAuth/EventSub is still blocked by developer 2FA. The offline chat lab is explicitly labeled simulation.
