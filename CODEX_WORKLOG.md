@@ -73,3 +73,41 @@ Results:
 - A Codex preview was opened for `/duel/`, but no browser automation or installed browser was available for click-level 320px/390px/desktop QA. No visual pass is claimed.
 - Twitch OAuth/EventSub remains unverified because of developer 2FA. No deployment was performed and no Twitch activity or Codex session ID was fabricated.
 - See `CODEX_FINAL_CLEANUP.md` and `LIVE_EVIDENCE.md` for the detailed handoff.
+
+## Final Codebreakers cleanup — issue #15 — 2026-11-03
+
+### Changes performed
+
+- Created branch `fix/final-codebreakers-cleanup` from the current `origin/main` release.
+- Retired the old Architect playable source from the active tree: `play/`, the old engine/controller/style/progression/art helpers, the standalone inliner and its generated preview, plus tests that depended only on that engine. Historical reports and submission evidence were left intact.
+- Made `/duel/` the only maintained game route. The local server and Vercel configuration redirect `/play`, `/play/` and `/play/index.html` to `/duel/`; the build no longer copies a legacy `play/` directory.
+- Replaced Codebreakers' `ORIGINAL GAME` navigation with `HOME`.
+- Added a real Fullscreen API toggle on the `#combat-shell` parent. It includes the arena, streamer controls, audience rail, vote/power surfaces and Twitch instructions; `fullscreenchange`, Escape-driven exits, unsupported browsers and rejected requests are reflected without false success.
+- Updated current README, AGENTS, handoff and release-checklist architecture notes. The dated Architect reports remain historical records.
+
+### Verification performed
+
+Commands run from the project root:
+
+```text
+npm test
+npm run build
+node --check src/duel.js
+node --check src/twitch.js
+node --check src/streamerbot-bridge.js
+node --check src/audience-director.js
+node --check src/raid-campaign.js
+node --check src/boss-evolution.js
+node server.mjs dist
+curl route checks for /, /duel/, /play, /play/, /play/index.html, /src/engine.js and /src/duel.js
+```
+
+Results:
+
+- `npm test`: **56/56 passed**. The count is lower than the historical 65 because engine-only Architect tests were removed with the retired prototype.
+- `npm run build`: passed; static output created in `dist/`.
+- Active module syntax checks: passed.
+- Local HTTP: `/` and `/duel/` returned 200; all three retired `/play` paths returned 308 to `/duel/`; `/src/duel.js` returned 200 and `/src/engine.js` returned 404.
+- Generated-tree audit: `dist/play/index.html` and `dist/src/engine.js` are absent.
+- Browser interaction QA: not run. No Chromium/Firefox binary, Playwright/Puppeteer package, or browser interaction tool is available in this workspace; no click-level fullscreen claim is made.
+- No deployment or merge was performed. Real Twitch OAuth/EventSub remains unverified and no simulated activity is presented as live.

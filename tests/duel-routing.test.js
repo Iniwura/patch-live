@@ -4,11 +4,24 @@ import { readFileSync } from 'node:fs';
 const source=readFileSync(new URL('../src/duel.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../duel/index.html',import.meta.url),'utf8');
 const build=readFileSync(new URL('../scripts/build.mjs',import.meta.url),'utf8');
-test('experimental arena is separate from the production play route',()=>{
+test('Codebreakers is the active arena and exposes the complete fullscreen shell',()=>{
   assert.match(html,/id="fight"/);
   assert.match(html,/id="start-screen"/);
+  assert.match(html,/id="combat-shell"/);
+  assert.match(html,/id="fullscreen-toggle"/);
+  assert.match(html,/href="\/" class="exit-link">HOME/);
   assert.match(html,/src\/duel\.js/);
   assert.match(build,/duel\/'/);
+  assert.doesNotMatch(html,/href="\/play\//);
+});
+test('fullscreen uses the browser API on the parent shell and reports failures',()=>{
+  assert.match(source,/combatShell\.requestFullscreen/);
+  assert.match(source,/document\.exitFullscreen/);
+  assert.match(source,/document\.fullscreenElement===combatShell/);
+  assert.match(source,/fullscreenchange/);
+  assert.match(source,/fullscreenerror/);
+  assert.match(source,/FULLSCREEN IS NOT SUPPORTED/);
+  assert.match(source,/FULLSCREEN REQUEST WAS DENIED/);
 });
 test('viewer-authority is restricted to the existing vote compiler and distinct identities',()=>{
   assert.match(source,/canonicalAudienceUser\(evt\)/);

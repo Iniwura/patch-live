@@ -8,7 +8,9 @@ const port = Number(process.env.PORT || 4173);
 createServer(async (req, res) => {
   try {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-    if (pathname === '/play') { res.writeHead(308, { Location: '/play/' }); res.end(); return; }
+    if (pathname === '/play' || pathname === '/play/' || pathname === '/play/index.html') {
+      res.writeHead(308, { Location: '/duel/' }); res.end(); return;
+    }
     const file = resolve(root, '.' + pathname, pathname.endsWith('/') ? 'index.html' : '');
     if (file !== root && !file.startsWith(root + sep)) { res.writeHead(403); res.end('Forbidden'); return; }
     const item = await stat(file);

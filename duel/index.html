@@ -16,7 +16,7 @@
 <header class="masthead">
 <a class="logo" href="/" aria-label="Back to PATCH LIVE home"><span class="logo-sigil">✳</span>PATCH<span class="logo-break">//</span>LIVE</a>
 <div class="edition">THE COMPILER <span class="slash-mark">/</span> THREE-WAVE RAID</div>
-<div class="masthead-right"><span class="offline-indicator" id="connection-state"><i></i><span id="connection-text">OFFLINE / SIMULATED</span></span><button class="twitch-connect" id="twitch-connect">CONNECT TWITCH ↗</button><a href="/play/" class="exit-link">ORIGINAL GAME ↗</a></div>
+<div class="masthead-right"><span class="offline-indicator" id="connection-state"><i></i><span id="connection-text">OFFLINE / SIMULATED</span></span><button class="twitch-connect" id="twitch-connect">CONNECT TWITCH ↗</button><a href="/" class="exit-link">HOME ↗</a></div>
 </header>
 <main>
 <section class="event-top">
@@ -24,9 +24,9 @@
 <div class="event-name"><span>STREAMER VS CHAT · THREE STAGES · ONE FINAL BOSS</span><h1>CODE <em>BREAKERS.</em></h1></div>
 <div class="event-meta"><span>WAVE-BASED ARCADE SURVIVAL</span><strong>BREACH. SENTINEL. COMPILER.</strong><small>INSTANT POWERS · EVOLUTION VOTES</small></div>
 </section>
-<div class="combat-layout">
+<div class="combat-layout" id="combat-shell">
 <section class="stage" aria-label="Playable Codebreakers three-wave arcade raid" id="stage">
-<div class="stage-bar"><div><span class="status-dot"></span> <span id="broadcast-source">OFFLINE / SIMULATED</span> <b>01</b></div><div class="campaign-hud"><span id="round-indicator">WAVE 01 / SYSTEM BREACH</span><b id="wave-label">01 / 03</b></div><div class="game-clock" id="game-clock">04:00</div></div>
+<div class="stage-bar"><div><span class="status-dot"></span> <span id="broadcast-source">OFFLINE / SIMULATED</span> <b>01</b></div><div class="campaign-hud"><span id="round-indicator">WAVE 01 / SYSTEM BREACH</span><b id="wave-label">01 / 03</b></div><div class="stage-bar-actions"><button type="button" class="fullscreen-toggle" id="fullscreen-toggle" aria-pressed="false">FULLSCREEN ↗</button><div class="game-clock" id="game-clock">04:00</div></div></div>
 <div class="canvas-outer">
 <canvas id="fight" width="1280" height="720" aria-label="Codebreakers arcade raid. Move with A/D or arrow keys; Space or J reflects falling projectiles and strikes nearby Glitchlings; Shift or K dashes." tabindex="0"></canvas>
 <div class="screen-glare" aria-hidden="true"></div>

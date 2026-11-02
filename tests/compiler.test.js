@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { compilePatch, parseVote, VoteRound, canonicalVoteUser } from '../src/patches.js';
-import { ArenaEngine } from '../src/engine.js';
 
 test('compiles two-effect recipes to one canonical ID independent of input order', () => {
   const a = compilePatch('moon+meteor');
@@ -12,7 +11,6 @@ test('compiles two-effect recipes to one canonical ID independent of input order
   assert.equal(parseVote('!PATCH moon + meteor'), 'meteor+moon');
   assert.equal(parseVote('!patch meteor+moon'), 'meteor+moon');
 });
-
 test('rejects arbitrary expressions, repeats, contradictory rules and extra tokens', () => {
   for (const value of [
     'meteor+meteor', 'moon+reverse', 'reverse+moon', 'moon+meteor+hyper',
@@ -23,7 +21,6 @@ test('rejects arbitrary expressions, repeats, contradictory rules and extra toke
   assert.equal(parseVote('!patch meteor+moon extra'), null);
   assert.equal(parseVote('look, !patch moon+meteor'), null);
 });
-
 test('one vote per user also holds across canonical compound variations', () => {
   const r = new VoteRound(30000, 0);
   assert.equal(r.vote('alice', 'moon+meteor', 100, 'Alice'), true);
@@ -45,44 +42,4 @@ test('Twitch events compile valid recipes but ignore malformed and anonymous mes
   assert.equal(valid.patchId, 'hyper+magnet');
   assert.equal(canonicalVoteUser({ chatter_user_id: '47', message: { text: '!patch reverse+moon' } }), null);
   assert.equal(canonicalVoteUser({ message: { text: '!patch meteor+moon' } }), null);
-});
-
-test('engine applies multiple effects to player and bound patch duration', () => {
-  const e = Object.create(ArenaEngine.prototype);
-  e.playing = true; e.elapsed = 2; e.onUpdate = () => {}; e.meteorClock = 0;
-  assert.equal(e.applyPatch('moon+meteor'), true);
-  assert.equal(e.patch, 'meteor+moon');
-  assert.deepEqual([...e.activeEffects()], ['meteor', 'moon']);
-  assert.equal(e.applyPatch('reverse+moon'), false);
-  assert.equal(e.patch, 'meteor+moon');
-  assert.equal(e.applyPatch('hyper+magnet', 100), true);
-  assert.equal(e.patchEnds, 22);
-  assert.equal(e.vetoPatch(), true);
-  assert.equal(e.activeEffects().size, 0);
-});
-
-function physicsFrame(recipe) {
-  const e = Object.create(ArenaEngine.prototype);
-  Object.assign(e, {
-    playing: true, elapsed: 1, patch: recipe, patchEnds: 20, meteorClock: 0,
-    keys: new Set(), health: 100, score: 0, hazards: [], meteors: [], trail: [],
-    cores: [], platforms: [], onUpdate: () => {}, onEnd: () => {},
-    player: { x: 190, y: 260, vx: 0, vy: 0, r: 18, invincible: 0, grounded: false }
-  });
-  e.update(.1);
-  return e;
-}
-
-test('combined moon+meteor changes both gravity and meteor simulation', () => {
-  const normal = physicsFrame(null);
-  const combo = physicsFrame('meteor+moon');
-  assert.ok(combo.player.vy < normal.player.vy);
-  combo.update(.4);
-  assert.equal(combo.meteors.length, 1);
-});
-
-test('combined hyper+magnet increases movement and magnetic range', () => {
-  const e = physicsFrame('hyper+magnet');
-  assert.ok(e.activeEffects().has('hyper'));
-  assert.ok(e.activeEffects().has('magnet'));
 });

@@ -5,7 +5,7 @@ This file describes the **current shipped project**. Older documents such as `FI
 ## Project identity
 
 - Main experience: **PATCH//LIVE: Codebreakers**, a Twitch-interactive, three-wave, Canvas arcade raid at `/duel/`.
-- Landing: `/`. Preserved earlier Architect experience: `/play/`.
+- Landing: `/`. The retired `/play/` compatibility path redirects to `/duel/`; it does not load a second game.
 - Production: https://patch-live.vercel.app/ · Devpost: https://devpost.com/software/patch-live-codebreakers
 - The original Codex desktop session established the foundation and performed a genuine final cleanup. Later raid, Streamer.bot and design work was completed separately. **Do not relabel later work as Codex-authored.**
 - The hackathon project is **already submitted**. Avoid breaking the deployed experience or rewriting historical verification notes.
@@ -19,7 +19,7 @@ This file describes the **current shipped project**. Older documents such as `FI
 - `src/streamerbot-bridge.js`: Streamer.bot local WebSocket transport.
 - `src/twitch.js`: optional Twitch OAuth/EventSub transport.
 - `index.html`, `src/landing.js`, `src/landing.css`: current marketing landing.
-- `src/engine.js` and `play/`: preserved Architect mode.
+- `server.mjs` and `vercel.json`: route the retired `/play` paths to `/duel/`.
 - `tests/`: automated regression tests; `scripts/build.mjs`: static build; `dist/`: generated output, not source to edit.
 
 ## Commands
@@ -40,8 +40,9 @@ Use `npm run preview` to serve the built `dist/` tree. Node.js 20+ is recommende
 2. **Respect untrusted audience input.** Only explicitly allowed `!power` and `!patch` commands can reach the game. Preserve per-user voting, cooldowns, bounded effects, typed event IDs, deduplication, and fail-closed behavior on transport errors.
 3. **Do not invent test results or deployment checks.** Report exact commands, environment, revision and outcomes. The latest post-cleanup release passed 65 automated tests, not an eternal guarantee.
 4. **Keep all Twitch secrets out of source and public logs.** Public Client IDs are okay; access tokens, authorization codes, client secrets, and Streamer.bot credentials are not.
-5. **Preserve game modes and URLs.** Do not silently replace `/duel/`, `/play/`, the landing page, or user-visible control/command labels.
+5. **Keep the shipped route contract explicit.** `/duel/` is the only maintained game; `/play` and `/play/` must remain lightweight redirects to it, never a second playable bundle. Preserve the landing page and user-visible control/command labels.
 6. **Prioritize small, reversible changes.** After submission, use a dedicated branch and PR. No speculative new architecture, monetization, unrequested visual redesign or auto-merging into `main`.
+7. **Fullscreen must be truthful.** The Codebreakers fullscreen control targets the parent shell containing both the arena and audience rail, reflects `fullscreenchange`, and reports unsupported or rejected requests without claiming success.
 
 ## Code Review Rules
 
@@ -57,8 +58,8 @@ Flag changes that allow a forced victory, reset/extend the clock via a sabotage 
 
 Flag misleading README claims about deployment, automated tests, Twitch EventSub verification, paid integrations or Codex authorship. A README should make offline play and the Streamer.bot setup reproducible, explain local-only limitations, and link the actual YouTube/Devpost entry. Code should not be edited during a docs-only cleanup unless a separate verified bug justifies it.
 
-## Codex handoff for the final docs PR
+## Codex handoff for the final cleanup PR
 
-Review `README.md`, this file and `RELEASE_CHECKLIST.md` against the shipped `main` implementation. Check command syntax, product links, actual game controls, WebSocket authentication limitations, the test command, and precise Codex attribution. Run tests and build if the environment allows, but avoid changes to game logic or the submitted video. Report a concise findings table. If you identify a gameplay or security issue, propose a **separate PR**, not an invisible fix in the docs PR.
+Review `README.md`, this file and `RELEASE_CHECKLIST.md` against the shipped Codebreakers implementation. Check command syntax, product links, actual game controls, WebSocket authentication limitations, the test command, route redirects, fullscreen behavior and precise Codex attribution. Run tests, build and HTTP/source checks if the environment allows; do not change the submitted video or deploy automatically. Report a concise findings table. Preserve historical evidence files even when they describe the retired Architect prototype.
 
 Historical evidence: [CODEX_FINAL_CLEANUP.md](CODEX_FINAL_CLEANUP.md), [CODEX_WORKLOG.md](CODEX_WORKLOG.md), [LIVE_EVIDENCE.md](LIVE_EVIDENCE.md).
