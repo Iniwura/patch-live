@@ -21,5 +21,7 @@ test('fullscreen shell includes the game and audience surfaces', async () => {
   assert.match(html, /class="broadcast-rail"/);
   assert.match(html, /class="fullscreen-toggle" id="fullscreen-toggle"/);
   assert.match(css, /#combat-shell:fullscreen/);
+  assert.match(css, /aspect-ratio:16\/9/);
+  assert.match(css, /\.masthead \.exit-link\{display:inline-block/);
   assert.match(js, /document\.addEventListener\('fullscreenchange'/);
 });

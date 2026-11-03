@@ -111,3 +111,36 @@ Results:
 - Generated-tree audit: `dist/play/index.html` and `dist/src/engine.js` are absent.
 - Browser interaction QA: not run. No Chromium/Firefox binary, Playwright/Puppeteer package, or browser interaction tool is available in this workspace; no click-level fullscreen claim is made.
 - No deployment or merge was performed. Real Twitch OAuth/EventSub remains unverified and no simulated activity is presented as live.
+
+## PR #16 review cleanup — 2026-11-03
+
+### Changes performed
+
+- Hardened the fullscreen shell layout in `src/duel.css` so the game stage and audience rail stay inside the fullscreen viewport, including the compact desktop and mobile single-column layouts.
+- Locked the fullscreen game surface to a 16:9 aspect ratio and used contain rendering for the canvas so the game is letterboxed rather than stretched.
+- Added a capture-phase Escape handler in `src/duel.js` that explicitly calls `document.exitFullscreen()` for the `#combat-shell`, with rejected/throwing exit handling and truthful system feedback.
+- Restored the `HOME` navigation target on small screens while keeping it compact enough for the mobile masthead.
+- Added `tests/browser-regression.test.js` covering the review viewports (1920×1080, 1440×900, 1024×768, 900×700, 390×844 and 320×680), fullscreen geometry, 16:9 canvas proportions, stage/rail and touch-control overlap, Escape exit, and mobile Home visibility. The suite is optional and skips with an explicit reason when Playwright/Chromium is unavailable.
+
+### Verification performed
+
+```text
+npm test
+npm run build
+node --check src/duel.js
+node --check src/twitch.js
+node --check src/streamerbot-bridge.js
+node --check src/audience-director.js
+node --check src/raid-campaign.js
+node --check src/boss-evolution.js
+git diff --check
+```
+
+Results:
+
+- `npm test`: **56 passed, 1 skipped**. The skipped test is the new browser regression test because this checkout has no Playwright/Puppeteer package or Chromium/Firefox binary.
+- `npm run build`: passed; static output created in `dist/`.
+- Active module syntax checks: passed.
+- Local HTTP smoke: `/` and `/duel/` returned 200; `/play`, `/play/` and `/play/index.html` returned 308 to `/duel/`; `/src/duel.js` returned 200 and retired `/src/engine.js` returned 404.
+- Desktop/mobile click-level geometry and fullscreen behavior remain unverified in this environment; no visual browser pass is claimed.
+- No merge or deployment was performed. Twitch remains offline/unverified and no simulated activity is presented as live.

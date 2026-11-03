@@ -247,3 +247,49 @@ main{max-width:1880px;padding:0 clamp(17px,2.6vw,50px)}
   .fullscreen-toggle{padding:6px 6px;font-size:8px}
   #combat-shell:fullscreen{padding:0;gap:8px}
 }
+
+/* Browser-QA hardening: never let the fullscreen canvas stretch or escape its stage. */
+#combat-shell:fullscreen{
+  grid-template-rows:minmax(0,1fr);
+  min-height:0;
+  height:100dvh;
+  overflow:hidden;
+}
+#combat-shell:fullscreen .stage,
+#combat-shell:fullscreen .broadcast-rail{
+  min-height:0;
+  height:100%;
+  overflow:auto;
+}
+#combat-shell:fullscreen .canvas-outer{
+  width:100%;
+  height:auto;
+  flex:0 0 auto;
+  aspect-ratio:16/9;
+}
+#combat-shell:fullscreen .canvas-outer canvas{object-fit:contain}
+@media(max-width:1000px){
+  #combat-shell:fullscreen{
+    display:block;
+    height:100dvh;
+    min-height:100vh;
+    overflow:auto;
+  }
+  #combat-shell:fullscreen .stage{
+    display:block;
+    height:auto;
+    overflow:visible;
+  }
+  #combat-shell:fullscreen .broadcast-rail{
+    height:auto;
+    overflow:visible;
+  }
+  #combat-shell:fullscreen .canvas-outer{
+    height:auto;
+    aspect-ratio:16/9;
+  }
+}
+@media(max-width:650px){
+  /* HOME remains a real, compact navigation target on small screens. */
+  .masthead .exit-link{display:inline-block;font-size:8px;padding:6px 0}
+}

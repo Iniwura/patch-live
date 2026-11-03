@@ -74,6 +74,20 @@ async function toggleFullscreen(){
     displayFeed('SYSTEM','FULLSCREEN REQUEST WAS DENIED');
   }
 }
+function handleFullscreenEscape(event){
+  if(event.key!=='Escape'||document.fullscreenElement!==combatShell)return;
+  event.preventDefault();
+  event.stopPropagation();
+  try{
+    Promise.resolve(document.exitFullscreen()).catch(()=>{
+      syncFullscreenUI();
+      displayFeed('SYSTEM','FULLSCREEN EXIT WAS DENIED');
+    });
+  }catch{
+    syncFullscreenUI();
+    displayFeed('SYSTEM','FULLSCREEN EXIT WAS DENIED');
+  }
+}
 
 function displayFeed(head,body,kind='normal'){
   const root=$('feed'), el=document.createElement('div');
@@ -703,6 +717,7 @@ function inputDown(key){
   else if(key==='parry')parry();
   else if(key==='dash')dash();
 }
+window.addEventListener('keydown',handleFullscreenEscape,{capture:true});
 window.addEventListener('keydown',e=>{
   if(!shouldCaptureGameKey(document.activeElement))return;
   const k=e.key.toLowerCase();

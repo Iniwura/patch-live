@@ -20,6 +20,8 @@ test('fullscreen uses the browser API on the parent shell and reports failures',
   assert.match(source,/document\.fullscreenElement===combatShell/);
   assert.match(source,/fullscreenchange/);
   assert.match(source,/fullscreenerror/);
+  assert.match(source,/handleFullscreenEscape/);
+  assert.match(source,/document\.exitFullscreen\(\)/);
   assert.match(source,/FULLSCREEN IS NOT SUPPORTED/);
   assert.match(source,/FULLSCREEN REQUEST WAS DENIED/);
 });
