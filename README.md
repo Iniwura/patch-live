@@ -7,15 +7,15 @@
 
 A three-wave, Twitch-interactive arcade raid where viewers can save the streamer, sabotage the fight, and vote on how the final boss evolves.
 
-[**Play the game ↗**](https://patch-live.vercel.app/duel/) · [**Watch the 89-second demo ↗**](https://youtu.be/-sJFZgrkuJM) · [**Devpost submission ↗**](https://devpost.com/software/patch-live-codebreakers)
+[**Play the game ↗**](https://patch-live.vercel.app/duel/) · [**Watch the final submission video ↗**](https://youtu.be/jLitd5mFcns) · [**Devpost submission ↗**](https://devpost.com/software/patch-live-codebreakers)
 
 **JavaScript · Canvas · Twitch chat · Streamer.bot · Codex · Vercel**
 
-<a href="https://youtu.be/-sJFZgrkuJM">
-  <img src="https://img.youtube.com/vi/-sJFZgrkuJM/hqdefault.jpg" alt="PATCH//LIVE Codebreakers demo on YouTube" width="480">
+<a href="https://youtu.be/jLitd5mFcns">
+  <img src="https://img.youtube.com/vi/jLitd5mFcns/hqdefault.jpg" alt="PATCH//LIVE final Codebreakers submission video on YouTube" width="480">
 </a>
 
-<sub>Demo contains actual offline-guided gameplay and broadcaster-provided Twitch command evidence. It is not uninterrupted live-Twitch footage.</sub>
+<sub>The submitted video includes continuous real Twitch gameplay with chat and genuine Codex desktop footage. The in-game offline-guided run and Chat Lab remain clearly labelled simulated; they are not presented as Twitch activity.</sub>
 
 </div>
 
@@ -38,7 +38,7 @@ The streamer fights. **The viewers control the chaos.**
 | [**Codebreakers / Play**](https://patch-live.vercel.app/duel/) | Main three-wave raid, manual play, offline guided demo and Twitch connection |
 | [**Cinematic landing**](https://patch-live.vercel.app/) | Original animated Compiler key art and product introduction |
 | [**Project on Devpost**](https://devpost.com/software/patch-live-codebreakers) | Submitted hackathon story and project media |
-| [**YouTube demo**](https://youtu.be/-sJFZgrkuJM) | 89-second edited walkthrough and evidence excerpts |
+| [**Final submission video**](https://youtu.be/jLitd5mFcns) | Continuous real Twitch gameplay with chat and genuine Codex desktop footage |
 
 ## How to play
 
@@ -53,7 +53,9 @@ Start with **START THE RAID** for manual play. Read the contextual **STREAMER GU
 
 The visible **FULLSCREEN** control expands the complete Codebreakers shell—arena, streamer controls, audience rail, powers, vote state and Twitch instructions—using the browser Fullscreen API. Press **ESC** or **EXIT FULLSCREEN** to return; the encounter state is preserved. Browsers that reject or do not support fullscreen report that state in the event log without pretending the request succeeded.
 
-For a walkthrough, choose **WATCH THE CHAOS**. That mode uses six **simulated** viewers and the real campaign/combat rules. It can reach a genuine victory by defeating the final boss, but it is **not** a Twitch session.
+The supported mobile floor is **320px**. At that width the game remains usable, but the header, touch controls and audience rail are intentionally compact; this is an accepted responsive limitation rather than a claim of desktop-density parity.
+
+For a reproducible offline walkthrough, choose **WATCH THE CHAOS**. That mode uses six **simulated** viewers and the real campaign/combat rules. It can reach a genuine victory by defeating the final boss, but it is **not** the real Twitch footage shown in the submitted video.
 
 ### Three stages, one evolving monster
 
@@ -96,7 +98,7 @@ This uses the broadcaster's **authorized Twitch login inside Streamer.bot** and 
 5. First confirm **STREAMER.BOT / WAITING FOR CHAT**. That proves a local subscription, **not** a real Twitch event.
 6. Start a raid and type `!power shield` or `!power medkit` in the channel's Twitch chat. When an authenticated, non-test `Twitch.ChatMessage` arrives through Streamer.bot, the UI can show **TWITCH / CHAT RECEIVED**, the viewer's username and an eligible in-game effect.
 
-**Evidence level:** the broadcaster tested Streamer.bot and provided screenshots showing their `!power shield` message credited in-game; they confirmed that it worked. We did **not** independently archive raw Twitch transport logs. The uploaded demo uses screenshots for this evidence and offline-guided footage for the complete campaign.
+**Evidence level:** the submitted video includes continuous real Twitch gameplay with chat and genuine Codex desktop footage. Separately, the broadcaster tested Streamer.bot and provided screenshots showing their `!power shield` message credited in-game; they confirmed that it worked. We did **not** independently archive raw Twitch transport logs. The in-product `WATCH THE CHAOS` path remains offline-guided and simulated so the complete campaign can be reproduced without Twitch.
 
 The bridge connects only to `ws://127.0.0.1:8080/`, requests `Twitch.ChatMessage`, rejects explicitly marked test messages and malformed/anonymous chat, and deduplicates message IDs. It does **not** support password-enforced Streamer.bot WebSocket authentication; keep the default listener **local-only**, not internet-accessible.
 
@@ -181,9 +183,10 @@ All code runs in the browser after the static build; the Streamer.bot route depe
 
 | Verification | Status |
 | :--- | :--- |
-| **Node automated tests** | Run `npm test` on this cleanup branch; the exact result is recorded in the PR and handoff |
-| **Production build** | Verified `npm run build` on the final UI release |
-| **Browser smoke** | Prior desktop and phone-size Chromium checks are historical; this cleanup records route/fullscreen source and HTTP checks separately because no browser automation is available in the cleanup environment |
+| **Node automated tests** | **56 passing, 1 skipped** on merged PR #16; the skipped case is the optional browser regression when Playwright/Chromium is unavailable |
+| **Production build** | Verified with `npm run build` on merged `main` at `658494e` |
+| **Fullscreen behavior** | Verified in merged PR #16: the parent shell contains the arena and audience rail, the game stays 16:9, Exit Fullscreen and Escape return cleanly, and unsupported/rejected requests are reported truthfully |
+| **Browser regression coverage** | Six viewport checks cover fullscreen geometry, 16:9 proportions, stage/rail and touch-control overlap, Escape, and mobile Home, including the accepted 320px floor; the current environment skips the optional browser run without Playwright/Chromium |
 | **Campaign** | Codebreakers completes three waves, defeats The Compiler and records victory/score in guided testing |
 | **Streamer.bot connected chat** | Broadcaster screenshot and direct confirmation of a credited Twitch command; not a raw event log |
 | **Direct OAuth/EventSub live** | **Not verified** |
@@ -203,7 +206,7 @@ The foundation and original Architect encounter were built in the user's **genui
 - [Onboarding and gameplay balance PR](https://github.com/Iniwura/patch-live/pull/9)
 - [Final UI design PR](https://github.com/Iniwura/patch-live/pull/10)
 
-**Submission:** [Codex × TwitchCon Hackathon entry](https://devpost.com/software/patch-live-codebreakers) · [YouTube project video](https://youtu.be/-sJFZgrkuJM).
+**Submission:** [Codex × TwitchCon Hackathon entry](https://devpost.com/software/patch-live-codebreakers) · [Final YouTube submission video](https://youtu.be/jLitd5mFcns).
 
 ## Security, scope & limitations
 
@@ -220,6 +223,6 @@ The foundation and original Architect encounter were built in the user's **genui
 
 **THE CROWD BUILDS THE BOSS. YOU BREAK IT.**
 
-[**Play Codebreakers**](https://patch-live.vercel.app/duel/) · [**Watch the demo**](https://youtu.be/-sJFZgrkuJM) · [**Explore the source**](https://github.com/Iniwura/patch-live)
+[**Play Codebreakers**](https://patch-live.vercel.app/duel/) · [**Watch the final submission**](https://youtu.be/jLitd5mFcns) · [**Explore the source**](https://github.com/Iniwura/patch-live)
 
 </div>
