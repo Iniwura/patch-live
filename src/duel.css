@@ -228,3 +228,68 @@ main{max-width:1880px;padding:0 clamp(17px,2.6vw,50px)}
 @media(max-width:1020px){.masthead{height:66px}.event-top{min-height:96px;grid-template-columns:55px minmax(0,1fr) 215px}.event-name h1{font-size:clamp(54px,7vw,84px)}.event-meta{padding:10px}.event-meta strong{font-size:14px}.event-meta small{display:none}.combat-layout{grid-template-columns:minmax(0,1fr)}.broadcast-rail{min-height:0}.chat-quickstart{padding:14px}.incoming-main h2{font-size:44px}}
 @media(max-width:650px){.masthead{height:62px}.event-top{min-height:96px;grid-template-columns:minmax(0,1fr);gap:0}.event-number,.event-meta{display:none}.event-name>span{font-size:8px}.event-name h1{font-size:clamp(56px,12vw,80px);margin:8px 0 11px}.stage-bar{height:42px;padding:0 9px;gap:5px;font-size:8px}.stage-bar>div:first-child{gap:5px;max-width:35%}.stage-bar #broadcast-source{font-size:8px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.stage-bar b{font-size:8px}.game-clock{font-size:17px}.stage{box-shadow:0 15px 40px #0008}.chat-quickstart{padding:12px}.chat-command-grid code{font-size:10px}.chat-quicktop span{font-size:8px}.incoming-main h2{font-size:48px}.section-label{font-size:9px}.health-track{width:73px}.stage-bottom{height:60px;padding:0 9px}.score-hud{min-width:70px}.score-hud b{font-size:18px}.screen-overlay{background:linear-gradient(90deg,#0a1215f2,#0b1614c5)}.screen-overlay:not(.result-screen) h2{font-size:clamp(30px,10vw,48px)}.onboarding-steps{background:transparent}.raid-coach{padding:10px 12px}.underbar{padding:23px 0 30px}}
 @media(prefers-reduced-motion:reduce){.impact-title.active{animation:none;opacity:1;transform:translate(-50%,-50%)}}
+
+/* The fullscreen shell deliberately owns both the arena and audience rail. */
+.stage-bar-actions{display:flex;align-items:center;justify-content:flex-end;gap:13px;min-width:0}
+.fullscreen-toggle{border:1px solid #77757f;background:#22232c;color:#f4f0e8;padding:7px 9px;font:500 9px 'DM Mono',monospace;letter-spacing:.35px;white-space:nowrap}
+.fullscreen-toggle:hover{border-color:var(--acid);color:var(--acid);background:#292d2b}
+.fullscreen-toggle[aria-pressed="true"]{background:var(--acid);border-color:var(--acid);color:#11130c}
+#combat-shell:fullscreen{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:10px;width:100vw;height:100vh;max-width:none;padding:12px;background:#09090e;overflow:auto;align-items:stretch}
+#combat-shell:fullscreen .stage{display:flex;flex-direction:column;min-height:0}
+#combat-shell:fullscreen .canvas-outer{flex:1;min-height:220px;aspect-ratio:auto}
+#combat-shell:fullscreen .broadcast-rail{min-height:0;overflow:auto}
+@media(max-width:1000px){
+  #combat-shell:fullscreen{grid-template-columns:minmax(0,1fr);align-content:start}
+  #combat-shell:fullscreen .canvas-outer{flex:none;aspect-ratio:16/9}
+}
+@media(max-width:650px){
+  .stage-bar-actions{gap:7px}
+  .fullscreen-toggle{padding:6px 6px;font-size:8px}
+  #combat-shell:fullscreen{padding:0;gap:8px}
+}
+
+/* Browser-QA hardening: never let the fullscreen canvas stretch or escape its stage. */
+#combat-shell:fullscreen{
+  grid-template-rows:minmax(0,1fr);
+  min-height:0;
+  height:100dvh;
+  overflow:hidden;
+}
+#combat-shell:fullscreen .stage,
+#combat-shell:fullscreen .broadcast-rail{
+  min-height:0;
+  height:100%;
+  overflow:auto;
+}
+#combat-shell:fullscreen .canvas-outer{
+  width:100%;
+  height:auto;
+  flex:0 0 auto;
+  aspect-ratio:16/9;
+}
+#combat-shell:fullscreen .canvas-outer canvas{object-fit:contain}
+@media(max-width:1000px){
+  #combat-shell:fullscreen{
+    display:block;
+    height:100dvh;
+    min-height:100vh;
+    overflow:auto;
+  }
+  #combat-shell:fullscreen .stage{
+    display:block;
+    height:auto;
+    overflow:visible;
+  }
+  #combat-shell:fullscreen .broadcast-rail{
+    height:auto;
+    overflow:visible;
+  }
+  #combat-shell:fullscreen .canvas-outer{
+    height:auto;
+    aspect-ratio:16/9;
+  }
+}
+@media(max-width:650px){
+  /* HOME remains a real, compact navigation target on small screens. */
+  .masthead .exit-link{display:inline-block;font-size:8px;padding:6px 0}
+}

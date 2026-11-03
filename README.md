@@ -37,7 +37,6 @@ The streamer fights. **The viewers control the chaos.**
 | :--- | :--- |
 | [**Codebreakers / Play**](https://patch-live.vercel.app/duel/) | Main three-wave raid, manual play, offline guided demo and Twitch connection |
 | [**Cinematic landing**](https://patch-live.vercel.app/) | Original animated Compiler key art and product introduction |
-| [**Architect / Legacy mode**](https://patch-live.vercel.app/play/) | Preserved original boss encounter; not the primary submission |
 | [**Project on Devpost**](https://devpost.com/software/patch-live-codebreakers) | Submitted hackathon story and project media |
 | [**YouTube demo**](https://youtu.be/-sJFZgrkuJM) | 89-second edited walkthrough and evidence excerpts |
 
@@ -51,6 +50,8 @@ The streamer fights. **The viewers control the chaos.**
 | **Touch controls** | Mobile equivalents below the arena |
 
 Start with **START THE RAID** for manual play. Read the contextual **STREAMER GUIDE** when a projectile or nearby enemy needs attention. **HOW TO PLAY** expands a full controls/goal explanation.
+
+The visible **FULLSCREEN** control expands the complete Codebreakers shell—arena, streamer controls, audience rail, powers, vote state and Twitch instructions—using the browser Fullscreen API. Press **ESC** or **EXIT FULLSCREEN** to return; the encounter state is preserved. Browsers that reject or do not support fullscreen report that state in the event log without pretending the request succeeded.
 
 For a walkthrough, choose **WATCH THE CHAOS**. That mode uses six **simulated** viewers and the real campaign/combat rules. It can reach a genuine victory by defeating the final boss, but it is **not** a Twitch session.
 
@@ -171,7 +172,6 @@ All code runs in the browser after the static build; the Streamer.bot route depe
 | [`src/streamerbot-bridge.js`](src/streamerbot-bridge.js) | Local, read-only Twitch chat transport |
 | [`src/twitch.js`](src/twitch.js) | Optional OAuth / EventSub WebSocket client |
 | [`src/landing.js`](src/landing.js) / [`src/landing.css`](src/landing.css) | Cinematic product landing |
-| [`play/`](play/) / [`src/engine.js`](src/engine.js) | Preserved Architect encounter |
 | [`tests/`](tests/) | Unit, regression, gameplay and UI checks |
 | [`scripts/build.mjs`](scripts/build.mjs) | Static site bundling |
 
@@ -181,10 +181,10 @@ All code runs in the browser after the static build; the Streamer.bot route depe
 
 | Verification | Status |
 | :--- | :--- |
-| **Node automated tests** | **65 passing** on the verified release after the Aegis shield regression fix ([PR #13](https://github.com/Iniwura/patch-live/pull/13)); rerun `npm test` for any later revision |
+| **Node automated tests** | Run `npm test` on this cleanup branch; the exact result is recorded in the PR and handoff |
 | **Production build** | Verified `npm run build` on the final UI release |
-| **Browser smoke** | Desktop and phone-size Chromium checks passed for landing/game, controls and Streamer.bot modal |
-| **Campaign** | Actual engine completes three waves, defeats The Compiler and records victory/score in guided testing |
+| **Browser smoke** | Prior desktop and phone-size Chromium checks are historical; this cleanup records route/fullscreen source and HTTP checks separately because no browser automation is available in the cleanup environment |
+| **Campaign** | Codebreakers completes three waves, defeats The Compiler and records victory/score in guided testing |
 | **Streamer.bot connected chat** | Broadcaster screenshot and direct confirmation of a credited Twitch command; not a raw event log |
 | **Direct OAuth/EventSub live** | **Not verified** |
 | **Monetization / public multiplayer leaderboard** | **Not implemented** |

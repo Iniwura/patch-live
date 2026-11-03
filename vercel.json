@@ -3,6 +3,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "redirects": [
-    { "source": "/play", "destination": "/play/", "permanent": false }
+    { "source": "/play", "destination": "/duel/", "permanent": false },
+    { "source": "/play/", "destination": "/duel/", "permanent": false },
+    { "source": "/play/index.html", "destination": "/duel/", "permanent": false }
   ]
 }

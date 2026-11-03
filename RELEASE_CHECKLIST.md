@@ -6,7 +6,7 @@
 
 - [x] [Official Devpost project](https://devpost.com/software/patch-live-codebreakers) — submitted.
 - [x] [Landing](https://patch-live.vercel.app/) and [main game](https://patch-live.vercel.app/duel/) — deployed.
-- [x] [Preserved Architect encounter](https://patch-live.vercel.app/play/).
+- [x] Retired `/play/` compatibility path redirects to the maintained [Codebreakers route](https://patch-live.vercel.app/duel/); the old playable bundle is removed from the active build.
 - [x] [Source repository](https://github.com/Iniwura/patch-live).
 - [x] [YouTube demo](https://youtu.be/-sJFZgrkuJM) — published, browser-accessible.
 - [x] Genuine Codex desktop session ID — captured by the user using `/status` and supplied as the intended value for the required Devpost field. Exact saved field value was not independently read back from Devpost.

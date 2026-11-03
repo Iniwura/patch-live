@@ -11,6 +11,8 @@ import { RAID_BALANCE, projectileDamage, raidCoachHint } from './raid-coach.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('fight');
+const combatShell = $('combat-shell');
+const fullscreenToggle = $('fullscreen-toggle');
 const ctx = canvas.getContext('2d', {alpha:false});
 const backdrop=document.createElement('canvas');backdrop.width=1280;backdrop.height=720;
 const backdropContext=backdrop.getContext('2d',{alpha:false});
@@ -46,6 +48,46 @@ let activeTab='ally';
 let actualLive=false;
 let sbReady=false;
 let sbMode=false;
+
+const fullscreenSupported = Boolean(document.fullscreenEnabled && typeof combatShell?.requestFullscreen === 'function' && typeof document.exitFullscreen === 'function');
+function syncFullscreenUI(){
+  const active=document.fullscreenElement===combatShell;
+  fullscreenToggle.textContent=active?'EXIT FULLSCREEN ↙':'FULLSCREEN ↗';
+  fullscreenToggle.setAttribute('aria-pressed',String(active));
+  fullscreenToggle.setAttribute('aria-label',active?'Exit the full Codebreakers view':'Enter the full Codebreakers view');
+  fullscreenToggle.title=fullscreenSupported?'Arena + audience panel fullscreen':'Fullscreen is not supported in this browser';
+}
+async function toggleFullscreen(){
+  if(!fullscreenSupported){
+    displayFeed('SYSTEM','FULLSCREEN IS NOT SUPPORTED IN THIS BROWSER');
+    return;
+  }
+  try{
+    if(document.fullscreenElement===combatShell) await document.exitFullscreen();
+    else if(document.fullscreenElement){
+      displayFeed('SYSTEM','EXIT THE CURRENT FULLSCREEN VIEW BEFORE ENTERING THE RAID VIEW');
+      return;
+    }else await combatShell.requestFullscreen();
+    syncFullscreenUI();
+  }catch{
+    syncFullscreenUI();
+    displayFeed('SYSTEM','FULLSCREEN REQUEST WAS DENIED');
+  }
+}
+function handleFullscreenEscape(event){
+  if(event.key!=='Escape'||document.fullscreenElement!==combatShell)return;
+  event.preventDefault();
+  event.stopPropagation();
+  try{
+    Promise.resolve(document.exitFullscreen()).catch(()=>{
+      syncFullscreenUI();
+      displayFeed('SYSTEM','FULLSCREEN EXIT WAS DENIED');
+    });
+  }catch{
+    syncFullscreenUI();
+    displayFeed('SYSTEM','FULLSCREEN EXIT WAS DENIED');
+  }
+}
 
 function displayFeed(head,body,kind='normal'){
   const root=$('feed'), el=document.createElement('div');
@@ -675,6 +717,7 @@ function inputDown(key){
   else if(key==='parry')parry();
   else if(key==='dash')dash();
 }
+window.addEventListener('keydown',handleFullscreenEscape,{capture:true});
 window.addEventListener('keydown',e=>{
   if(!shouldCaptureGameKey(document.activeElement))return;
   const k=e.key.toLowerCase();
@@ -699,6 +742,12 @@ $('show-btn').addEventListener('click',()=>start(true));
 $('again-btn').addEventListener('click',()=>start(false));
 $('auto-chaos').addEventListener('click',()=>start(true));
 document.querySelectorAll('.power-tab').forEach(b=>b.addEventListener('click',()=>{activeTab=b.dataset.tab;buildEffectButtons();}));
+fullscreenToggle.addEventListener('click',toggleFullscreen);
+document.addEventListener('fullscreenchange',syncFullscreenUI);
+document.addEventListener('fullscreenerror',()=>{
+  syncFullscreenUI();
+  displayFeed('SYSTEM','FULLSCREEN REQUEST WAS DENIED');
+});
 
 // A one-click guide lets broadcasters paste exact supported commands into their chat.
 $('copy-chat-guide').addEventListener('click',async()=>{
@@ -784,7 +833,7 @@ $('sb-disconnect').addEventListener('click',()=>{
 });
 $('twitch-connect').addEventListener('click',()=>{
   $('twitch-modal').classList.remove('hidden');
-  $('twitch-callback').textContent=redirectUri('/duel/');
+  $('twitch-callback').textContent=redirectUri();
   $('twitch-client-id').value=getClientId();
   $('twitch-feedback').textContent='';
 });
@@ -792,7 +841,7 @@ $('twitch-close').addEventListener('click',()=>$('twitch-modal').classList.add('
 $('twitch-modal').addEventListener('click',event=>{if(event.target===$('twitch-modal'))$('twitch-modal').classList.add('hidden')});
 $('twitch-form').addEventListener('submit',event=>{
   event.preventDefault();
-  try{beginOAuth($('twitch-client-id').value.trim(),'/duel/');}
+  try{beginOAuth($('twitch-client-id').value.trim());}
   catch(error){$('twitch-feedback').textContent=error.message;}
 });
 $('twitch-disconnect').addEventListener('click',()=>{twitch.stop();disconnectToken();$('twitch-modal').classList.add('hidden');});
@@ -800,6 +849,7 @@ const oauth=consumeOAuthCallback();
 if(oauth?.error)displayFeed('TWITCH / AUTH ERROR',oauth.error,'hot');
 else if(getClientId()&&getToken())twitch.start(getToken(),getClientId());
 buildEffectButtons();
+syncFullscreenUI();
 displayFeed('SYSTEM / OFFLINE','Twitch chat is available after explicit OAuth and a confirmed EventSub subscription. Offline demo is separate.');
 updateUI();
 requestAnimationFrame(frame);
