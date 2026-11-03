@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 
 const playwright = await import('playwright').catch(() => null);
-const browserTest = playwright ? test : test.skip;
+const browserTest = playwright
+  ? test
+  : (name, _fn) => test(name, { skip: 'Playwright package is unavailable in this environment' }, () => {});
 const port = 4175;
 const baseUrl = `http://127.0.0.1:${port}`;
 const viewports = [
